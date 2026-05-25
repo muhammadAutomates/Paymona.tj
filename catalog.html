@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Каталог товаров | Паймона</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Полный каталог бытовой техники, посуды и товаров для дома в торговом центре Паймона. Доставка по Таджикистану.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .page-header { 
+            background: linear-gradient(135deg, var(--bg-dark) 40%, var(--brand-red) 100%); 
+            color: white; 
+            padding: 140px 0 70px; 
+            text-align: center; 
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .page-header::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 80% 20%, rgba(200, 55, 45, 0.2) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .page-title { font-size: 3.2rem; font-weight: 900; margin-bottom: 12px; }
+        .page-subtitle { color: #94A3B8; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <!-- Background mesh -->
+    <div class="mesh-bg"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar scrolled" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html" class="logo-text">
+                    <div class="logo-icon"></div>
+                    Паймона
+                </a>
+            </div>
+            
+            <div class="nav-actions">
+                <!-- Custom Language Switcher -->
+                <div class="custom-lang-switcher" id="langSwitcher">
+                    <button class="current-lang" id="currentLangBtn" aria-label="Select Language">
+                        <span class="lang-text" id="activeLangText">RU</span>
+                        <i class="ph ph-caret-down"></i>
+                    </button>
+                    <ul class="lang-dropdown" id="langDropdown">
+                        <li class="lang-option active" data-value="ru">RU</li>
+                        <li class="lang-option" data-value="tj">TJ</li>
+                        <li class="lang-option" data-value="en">EN</li>
+                    </ul>
+                    <select id="langSelect" aria-label="Language Select" style="display:none;">
+                        <option value="ru" selected>RU</option>
+                        <option value="tj">TJ</option>
+                        <option value="en">EN</option>
+                    </select>
+                </div>
+
+                <!-- Live Search Bar -->
+                <div class="search-container">
+                    <input type="text" class="search-input" id="globalSearchInput" placeholder="Поиск..." data-i18n-placeholder="search_placeholder">
+                    <button class="icon-btn search-btn" aria-label="Поиск"><i class="ph ph-magnifying-glass"></i></button>
+                </div>
+
+                <a href="admin.html" class="icon-btn admin-btn" aria-label="Панель администратора"><i class="ph ph-gear"></i></a>
+                
+                <button class="icon-btn cart-btn" id="cartToggleBtn" aria-label="Корзина">
+                    <i class="ph ph-shopping-cart"></i>
+                    <span class="cart-count" id="cartCountBadge">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <div class="container">
+            <h1 class="page-title" data-i18n="nav_catalog">Каталог товаров</h1>
+            <p class="page-subtitle" data-i18n="free_delivery"><i class="ph ph-truck"></i> Бесплатная доставка по Душанбе</p>
+        </div>
+    </header>
+
+    <!-- Catalog Section -->
+    <section class="products-section" style="min-height: 60vh;">
+        <div class="container">
+            <div class="category-filters scroll-reveal">
+                <button class="filter-btn active" data-filter="all" data-i18n="filter_all">Все</button>
+                <button class="filter-btn" data-filter="appliances" data-i18n="cat_appliances">Техника</button>
+                <button class="filter-btn" data-filter="dishes" data-i18n="cat_dishes">Посуда</button>
+                <button class="filter-btn" data-filter="home" data-i18n="cat_home">Товары для дома</button>
+            </div>
+            
+            <div id="productsGrid" class="product-grid">
+                <!-- Products will be dynamically loaded here by script.js -->
+            </div>
+            
+            <div id="noResults" class="hidden text-center" style="padding: 60px 0; width: 100%; grid-column: 1 / -1;">
+                <i class="ph ph-magnifying-glass" style="font-size: 4.5rem; color: var(--text-muted); margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;"></i>
+                <h2 data-i18n="no_results" style="font-size: 1.8rem; font-weight: 700; color: var(--text-main);">Товары не найдены</h2>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <div class="footer-logo"><span>П</span>аймона</div>
+                <p class="footer-desc" data-i18n="footer_desc">Широкий ассортимент бытовой техники, кухонной посуды и стильных аксессуаров для вашего дома.</p>
+                <div class="social-links">
+                    <a href="https://wa.me/992555597878" target="_blank" aria-label="WhatsApp"><i class="ph ph-whatsapp-logo"></i></a>
+                    <a href="https://t.me/+992555597878" target="_blank" aria-label="Telegram"><i class="ph ph-telegram-logo"></i></a>
+                    <a href="https://www.instagram.com/paymona.tj" target="_blank" aria-label="Instagram"><i class="ph ph-instagram-logo"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-links">
+                <h4 data-i18n="footer_cat">Каталог</h4>
+                <ul>
+                    <li><a href="catalog.html?category=appliances" data-i18n="cat_appliances">Техника</a></li>
+                    <li><a href="catalog.html?category=dishes" data-i18n="cat_dishes">Посуда</a></li>
+                    <li><a href="catalog.html?category=home" data-i18n="cat_home">Товары для дома</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-contact">
+                <h4 data-i18n="footer_contact">Контакты</h4>
+                <div class="contact-item">
+                    <i class="ph ph-phone"></i>
+                    <div style="display: flex; flex-direction: column;">
+                        <a href="tel:+992555597878">+992 55 559 7878</a>
+                        <span style="font-size: 0.8rem; color: #64748B;">Telegram / WhatsApp</span>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <i class="ph ph-map-pin"></i>
+                    <span data-i18n="footer_address">ул. Айни 62, г. Душанбе (База №3, возле 3-го светофора)</span>
+                </div>
+            </div>
+        </div>
+        <div class="container footer-copyright">
+            <p>&copy; 2026 Paymona. Все права защищены. Разработано с любовью.</p>
+        </div>
+    </footer>
+
+    <!-- PRODUCT DETAIL MODAL -->
+    <div id="detailModal" class="detail-modal">
+        <div class="detail-content">
+            <button class="close-detail-modal" id="closeDetailBtn" aria-label="Закрыть"><i class="ph ph-x"></i></button>
+            <div class="detail-body">
+                <div class="detail-gallery">
+                    <div class="detail-main-img-wrap" id="detailMainImgWrap">
+                        <!-- Main image or video player dynamically injected -->
+                    </div>
+                    <div class="detail-gallery-thumbs" id="detailThumbs">
+                        <!-- Thumbnails dynamically injected -->
+                    </div>
+                </div>
+                
+                <div class="detail-info">
+                    <h2 class="detail-title" id="detailTitle">Товар</h2>
+                    <div class="detail-rating-row">
+                        <div class="product-rating" id="detailRatingStars">
+                            <!-- Ratings will be computed and rendered -->
+                        </div>
+                        <span class="rating-count" id="detailRatingCount">(0 отзывов)</span>
+                    </div>
+                    
+                    <div class="detail-price-row">
+                        <span class="detail-price" id="detailPrice">0 c.</span>
+                        <span class="detail-old-price old-price hidden" id="detailOldPrice">0 c.</span>
+                    </div>
+                    
+                    <p class="detail-desc" id="detailDesc">Детальное описание товара...</p>
+                    
+                    <!-- Color Variations -->
+                    <div class="variation-group" id="detailColorsGroup">
+                        <h5 class="variation-label" data-i18n="var_color">Цвет</h5>
+                        <div class="variation-options" id="detailColorsList">
+                            <!-- Color Badges dynamically injected -->
+                        </div>
+                    </div>
+                    
+                    <!-- Size Variations -->
+                    <div class="variation-group" id="detailSizesGroup">
+                        <h5 class="variation-label" data-i18n="var_size">Размер</h5>
+                        <div class="variation-options" id="detailSizesList">
+                            <!-- Size Badges dynamically injected -->
+                        </div>
+                    </div>
+                    
+                    <div class="detail-actions">
+                        <div class="qty-control">
+                            <button class="qty-btn" id="detailQtyMinus" aria-label="Уменьшить количество"><i class="ph ph-minus"></i></button>
+                            <span class="qty-number" id="detailQtyNumber">1</span>
+                            <button class="qty-btn" id="detailQtyPlus" aria-label="Увеличить количество"><i class="ph ph-plus"></i></button>
+                        </div>
+                        <button class="btn btn-primary" id="detailAddToCartBtn" style="flex: 1;" data-i18n="btn_add_cart">В корзину</button>
+                    </div>
+                </div>
+                
+                <!-- Review List & Review Writing Form -->
+                <div class="detail-reviews-section">
+                    <div class="reviews-header">
+                        <h3 data-i18n="reviews_title">Отзывы покупателей</h3>
+                    </div>
+                    <div class="reviews-grid">
+                        <div class="reviews-list" id="reviewsList">
+                            <!-- Reviews rendered here -->
+                        </div>
+                        <div class="review-form-box">
+                            <h4 class="review-form-title" data-i18n="write_review">Оставить отзыв</h4>
+                            <form id="reviewForm">
+                                <div class="form-group">
+                                    <label class="form-label" data-i18n="rating_label">Ваша оценка</label>
+                                    <div class="star-rating-select" id="starRatingSelect">
+                                        <i class="ph-fill ph-star" data-rating="1"></i>
+                                        <i class="ph-fill ph-star" data-rating="2"></i>
+                                        <i class="ph-fill ph-star" data-rating="3"></i>
+                                        <i class="ph-fill ph-star" data-rating="4"></i>
+                                        <i class="ph-fill ph-star" data-rating="5"></i>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" data-i18n="review_name">Ваше имя</label>
+                                    <input type="text" id="reviewAuthorInput" class="form-input" required placeholder="Алишер">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" data-i18n="review_text">Комментарий</label>
+                                    <textarea id="reviewTextInput" class="form-input" required placeholder="Поделитесь отзывом о товаре..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100" data-i18n="review_submit">Отправить отзыв</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHOPPING CART SLIDE-OUT DRAWER -->
+    <div id="cartDrawerOverlay" class="cart-drawer-overlay">
+        <div class="cart-drawer">
+            <div class="cart-header">
+                <h3 class="cart-title" data-i18n="cart_title">Корзина</h3>
+                <button class="close-cart-btn" id="closeCartBtn" aria-label="Закрыть корзину"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <div id="cartItemsList" class="cart-items-list">
+                <!-- Cart items dynamically rendered here -->
+            </div>
+            
+            <div class="cart-footer">
+                <div class="cart-total-row">
+                    <span data-i18n="cart_total">Итого к оплате:</span>
+                    <span id="cartTotalPrice" class="cart-total-price">0 c.</span>
+                </div>
+                
+                <form id="checkoutForm" class="checkout-form">
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label class="form-label" style="font-weight: 700;" data-i18n="phone_label">Номер телефона для подтверждения:</label>
+                        <div class="checkout-phone-group">
+                            <span class="phone-prefix-span">+992</span>
+                            <input type="tel" id="checkoutPhoneInput" class="checkout-phone-input" placeholder="900 00 0000" pattern="[0-9]{9}" required maxlength="9">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" id="checkoutSubmitBtn" data-i18n="cart_checkout">Оформить заказ</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/products.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>

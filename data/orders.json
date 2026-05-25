@@ -1,0 +1,116 @@
+[
+  {
+    "totalPrice": 850,
+    "items": [
+      {
+        "cartItemId": "15__",
+        "name": "?????? Bergamo",
+        "id": 15,
+        "quantity": 1,
+        "price": 850,
+        "color": "",
+        "size": ""
+      }
+    ],
+    "phone": "900000000",
+    "id": 1001,
+    "date": "2026-05-24T18:50:04.396Z",
+    "status": "New"
+  },
+  {
+    "phone": "555597878 [ТЕСТ]",
+    "items": [
+      {
+        "name": " Bergamo [ТЕСТОВЫЙ ТОВАР]",
+        "price": 850,
+        "quantity": 1,
+        "color": "Красный",
+        "size": "Standart"
+      }
+    ],
+    "totalPrice": 850,
+    "id": 1002,
+    "date": "2026-05-25T15:34:49.622Z",
+    "status": "New"
+  },
+  {
+    "phone": "555597878 [ТЕСТ]",
+    "items": [
+      {
+        "name": " Bergamo [ТЕСТОВЫЙ ТОВАР]",
+        "price": 850,
+        "quantity": 1,
+        "color": "Красный",
+        "size": "Standart"
+      }
+    ],
+    "totalPrice": 850,
+    "id": 1003,
+    "date": "2026-05-25T15:35:48.724Z",
+    "status": "New"
+  },
+  {
+    "phone": "555597878 [ТЕСТ]",
+    "items": [
+      {
+        "name": " Bergamo [ТЕСТОВЫЙ ТОВАР]",
+        "price": 850,
+        "quantity": 1,
+        "color": "Красный",
+        "size": "Standart"
+      }
+    ],
+    "totalPrice": 850,
+    "id": 1004,
+    "date": "2026-05-25T15:36:53.572Z",
+    "status": "New"
+  },
+  {
+    "phone": "555597878 [ТЕСТ]",
+    "items": [
+      {
+        "name": " Bergamo [ТЕСТОВЫЙ ТОВАР]",
+        "price": 850,
+        "quantity": 1,
+        "color": "Красный",
+        "size": "Standart"
+      }
+    ],
+    "totalPrice": 850,
+    "id": 1005,
+    "date": "2026-05-25T15:37:29.587Z",
+    "status": "New"
+  },
+  {
+    "phone": "555597878 [ТЕСТ]",
+    "items": [
+      {
+        "name": " Bergamo [ТЕСТОВЫЙ ТОВАР]",
+        "price": 850,
+        "quantity": 1,
+        "color": "Красный",
+        "size": "Standart"
+      }
+    ],
+    "totalPrice": 850,
+    "id": 1006,
+    "date": "2026-05-25T15:37:47.548Z",
+    "status": "New"
+  },
+  {
+    "phone": "555597878 [ТЕСТ]",
+    "items": [
+      {
+        "name": " Bergamo [ТЕСТОВЫЙ ТОВАР]",
+        "price": 850,
+        "quantity": 1,
+        "color": "Красный",
+        "size": "Standart"
+      }
+    ],
+    "totalPrice": 850,
+    "id": 1007,
+    "date": "2026-05-25T15:38:25.396Z",
+    "status": "New"
+  }
+]

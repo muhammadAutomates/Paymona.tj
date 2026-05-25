@@ -1,0 +1,938 @@
+[
+  {
+    "id": 1,
+    "name": "Духовка электрическая",
+    "category": "appliances",
+    "price": 225,
+    "image": "assets/products/product_1.jpg",
+    "badge": "Хит"
+  },
+  {
+    "id": 2,
+    "name": "Набор кастрюль",
+    "category": "dishes",
+    "price": 65,
+    "image": "assets/products/product_2.jpg",
+    "badge": null
+  },
+  {
+    "id": 3,
+    "name": "Комплект постельного белья",
+    "category": "home",
+    "price": 146,
+    "image": "assets/products/product_3.jpg",
+    "badge": null
+  },
+  {
+    "id": 4,
+    "name": "Стиральная машина",
+    "category": "appliances",
+    "price": 115,
+    "image": "assets/products/product_4.jpg",
+    "badge": null
+  },
+  {
+    "id": 5,
+    "name": "Сковорода гриль",
+    "category": "dishes",
+    "price": 90,
+    "image": "assets/products/product_5.jpg",
+    "badge": null
+  },
+  {
+    "id": 6,
+    "name": "Полотенце махровое",
+    "category": "home",
+    "price": 220,
+    "image": "assets/products/product_6.jpg",
+    "badge": null
+  },
+  {
+    "id": 7,
+    "name": "Холодильник",
+    "category": "appliances",
+    "price": 225,
+    "image": "assets/products/product_7.jpg",
+    "badge": null
+  },
+  {
+    "id": 8,
+    "name": "Тарелка керамическая",
+    "category": "dishes",
+    "price": 94,
+    "image": "assets/products/product_8.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 9,
+    "name": "Ортопедическая подушка",
+    "category": "home",
+    "price": 72,
+    "image": "assets/products/product_9.jpg",
+    "badge": null
+  },
+  {
+    "id": 10,
+    "name": "Микроволновая печь",
+    "category": "appliances",
+    "price": 65,
+    "image": "assets/products/product_10.jpg",
+    "badge": null
+  },
+  {
+    "id": 11,
+    "name": "Набор столовых приборов",
+    "category": "dishes",
+    "price": 138,
+    "image": "assets/products/product_11.jpg",
+    "badge": "Хит"
+  },
+  {
+    "id": 12,
+    "name": "Одеяло стеганое",
+    "category": "home",
+    "price": 84,
+    "image": "assets/products/product_12.jpg",
+    "badge": null
+  },
+  {
+    "id": 13,
+    "name": "Пылесос",
+    "category": "appliances",
+    "price": 164,
+    "image": "assets/products/product_13.jpg",
+    "badge": null
+  },
+  {
+    "id": 14,
+    "name": "Чайный сервиз",
+    "category": "dishes",
+    "price": 102,
+    "image": "assets/products/product_14.jpg",
+    "badge": null
+  },
+  {
+    "id": 15,
+    "name": "Мягкий коврик",
+    "category": "home",
+    "price": 176,
+    "image": "assets/products/product_15.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 16,
+    "name": "Утюг",
+    "category": "appliances",
+    "price": 228,
+    "image": "assets/products/product_16.jpg",
+    "badge": null
+  },
+  {
+    "id": 17,
+    "name": "Кружка фарфоровая",
+    "category": "dishes",
+    "price": 206,
+    "image": "assets/products/product_17.jpg",
+    "badge": null
+  },
+  {
+    "id": 18,
+    "name": "Плотные шторы",
+    "category": "home",
+    "price": 50,
+    "image": "assets/products/product_18.jpg",
+    "badge": null
+  },
+  {
+    "id": 19,
+    "name": "Блендер стационарный",
+    "category": "appliances",
+    "price": 123,
+    "image": "assets/products/product_19.jpg",
+    "badge": null
+  },
+  {
+    "id": 20,
+    "name": "Набор кухонных ножей",
+    "category": "dishes",
+    "price": 184,
+    "image": "assets/products/product_20.jpg",
+    "badge": null
+  },
+  {
+    "id": 21,
+    "name": "Настольная LED лампа",
+    "category": "home",
+    "price": 156,
+    "image": "assets/products/product_21.jpg",
+    "badge": "Хит"
+  },
+  {
+    "id": 22,
+    "name": "Планетарный миксер",
+    "category": "appliances",
+    "price": 141,
+    "image": "assets/products/product_22.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 23,
+    "name": "Доска разделочная бамбуковая",
+    "category": "dishes",
+    "price": 68,
+    "image": "assets/products/product_23.jpg",
+    "badge": null
+  },
+  {
+    "id": 24,
+    "name": "Настенные часы",
+    "category": "home",
+    "price": 204,
+    "image": "assets/products/product_24.jpg",
+    "badge": null
+  },
+  {
+    "id": 25,
+    "name": "Мясорубка электрическая",
+    "category": "appliances",
+    "price": 160,
+    "image": "assets/products/product_25.jpg",
+    "badge": null
+  },
+  {
+    "id": 26,
+    "name": "Стеклянная форма для запекания",
+    "category": "dishes",
+    "price": 217,
+    "image": "assets/products/product_26.jpg",
+    "badge": null
+  },
+  {
+    "id": 27,
+    "name": "Декоративная ваза",
+    "category": "home",
+    "price": 150,
+    "image": "assets/products/product_27.jpg",
+    "badge": null
+  },
+  {
+    "id": 28,
+    "name": "Чайник электрический",
+    "category": "appliances",
+    "price": 143,
+    "image": "assets/products/product_28.jpg",
+    "badge": null
+  },
+  {
+    "id": 29,
+    "name": "Салатница",
+    "category": "dishes",
+    "price": 139,
+    "image": "assets/products/product_29.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 30,
+    "name": "Зеркало с подсветкой",
+    "category": "home",
+    "price": 105,
+    "image": "assets/products/product_30.jpg",
+    "badge": null
+  },
+  {
+    "id": 31,
+    "name": "Мультиварка",
+    "category": "appliances",
+    "price": 120,
+    "image": "assets/products/product_31.jpg",
+    "badge": "Хит"
+  },
+  {
+    "id": 32,
+    "name": "Терка универсальная",
+    "category": "dishes",
+    "price": 154,
+    "image": "assets/products/product_32.jpg",
+    "badge": null
+  },
+  {
+    "id": 33,
+    "name": "Корзина для белья",
+    "category": "home",
+    "price": 68,
+    "image": "assets/products/product_33.jpg",
+    "badge": null
+  },
+  {
+    "id": 34,
+    "name": "Кухонный комбайн",
+    "category": "appliances",
+    "price": 151,
+    "image": "assets/products/product_34.jpg",
+    "badge": null
+  },
+  {
+    "id": 35,
+    "name": "Дуршлаг силиконовый",
+    "category": "dishes",
+    "price": 136,
+    "image": "assets/products/product_35.jpg",
+    "badge": null
+  },
+  {
+    "id": 36,
+    "name": "Текстильный органайзер",
+    "category": "home",
+    "price": 220,
+    "image": "assets/products/product_36.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 37,
+    "name": "Кофемашина",
+    "category": "appliances",
+    "price": 243,
+    "image": "assets/products/product_37.jpg",
+    "badge": null
+  },
+  {
+    "id": 38,
+    "name": "Заварочный чайник",
+    "category": "dishes",
+    "price": 125,
+    "image": "assets/products/product_38.jpg",
+    "badge": null
+  },
+  {
+    "id": 39,
+    "name": "Теплый плед",
+    "category": "home",
+    "price": 210,
+    "image": "assets/products/product_39.jpg",
+    "badge": null
+  },
+  {
+    "id": 40,
+    "name": "Тостер",
+    "category": "appliances",
+    "price": 116,
+    "image": "assets/products/product_40.jpg",
+    "badge": null
+  },
+  {
+    "id": 41,
+    "name": "Набор бокалов",
+    "category": "dishes",
+    "price": 183,
+    "image": "assets/products/product_41.jpg",
+    "badge": "Хит"
+  },
+  {
+    "id": 42,
+    "name": "Декоративная подушка",
+    "category": "home",
+    "price": 152,
+    "image": "assets/products/product_42.jpg",
+    "badge": null
+  },
+  {
+    "id": 43,
+    "name": "Соковыжималка",
+    "category": "appliances",
+    "price": 204,
+    "image": "assets/products/product_43.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 44,
+    "name": "Контейнеры для хранения",
+    "category": "dishes",
+    "price": 227,
+    "image": "assets/products/product_44.jpg",
+    "badge": null
+  },
+  {
+    "id": 45,
+    "name": "Гладильная доска",
+    "category": "home",
+    "price": 180,
+    "image": "assets/products/product_45.jpg",
+    "badge": null
+  },
+  {
+    "id": 46,
+    "name": "Духовка электрическая",
+    "category": "appliances",
+    "price": 107,
+    "image": "assets/products/product_46.jpg",
+    "badge": null
+  },
+  {
+    "id": 47,
+    "name": "Набор кастрюль",
+    "category": "dishes",
+    "price": 123,
+    "image": "assets/products/product_47.jpg",
+    "badge": null
+  },
+  {
+    "id": 48,
+    "name": "Комплект постельного белья",
+    "category": "home",
+    "price": 72,
+    "image": "assets/products/product_48.jpg",
+    "badge": null
+  },
+  {
+    "id": 49,
+    "name": "Стиральная машина",
+    "category": "appliances",
+    "price": 183,
+    "image": "assets/products/product_49.jpg",
+    "badge": null
+  },
+  {
+    "id": 50,
+    "name": "Сковорода гриль",
+    "category": "dishes",
+    "price": 70,
+    "image": "assets/products/product_50.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 51,
+    "name": "Полотенце махровое",
+    "category": "home",
+    "price": 94,
+    "image": "assets/products/product_51.jpg",
+    "badge": "Хит"
+  },
+  {
+    "id": 52,
+    "name": "Холодильник",
+    "category": "appliances",
+    "price": 120,
+    "image": "assets/products/product_52.jpg",
+    "badge": null
+  },
+  {
+    "id": 53,
+    "name": "Тарелка керамическая",
+    "category": "dishes",
+    "price": 239,
+    "image": "assets/products/product_53.jpg",
+    "badge": null
+  },
+  {
+    "id": 54,
+    "name": "Ортопедическая подушка",
+    "category": "home",
+    "price": 238,
+    "image": "assets/products/product_54.jpg",
+    "badge": null
+  },
+  {
+    "id": 55,
+    "name": "Микроволновая печь",
+    "category": "appliances",
+    "price": 103,
+    "image": "assets/products/product_55.jpg",
+    "badge": null
+  },
+  {
+    "id": 56,
+    "name": "Набор столовых приборов",
+    "category": "dishes",
+    "price": 155,
+    "image": "assets/products/product_56.jpg",
+    "badge": null
+  },
+  {
+    "id": 57,
+    "name": "Одеяло стеганое",
+    "category": "home",
+    "price": 97,
+    "image": "assets/products/product_57.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 58,
+    "name": "Пылесос",
+    "category": "appliances",
+    "price": 225,
+    "image": "assets/products/product_58.jpg",
+    "badge": null
+  },
+  {
+    "id": 59,
+    "name": "Чайный сервиз",
+    "category": "dishes",
+    "price": 98,
+    "image": "assets/products/product_59.jpg",
+    "badge": null
+  },
+  {
+    "id": 60,
+    "name": "Мягкий коврик",
+    "category": "home",
+    "price": 65,
+    "image": "assets/products/product_60.jpg",
+    "badge": null
+  },
+  {
+    "id": 61,
+    "name": "Утюг",
+    "category": "appliances",
+    "price": 196,
+    "image": "assets/products/product_61.jpg",
+    "badge": "Хит"
+  },
+  {
+    "id": 62,
+    "name": "Кружка фарфоровая",
+    "category": "dishes",
+    "price": 125,
+    "image": "assets/products/product_62.jpg",
+    "badge": null
+  },
+  {
+    "id": 63,
+    "name": "Плотные шторы",
+    "category": "home",
+    "price": 50,
+    "image": "assets/products/product_63.jpg",
+    "badge": null
+  },
+  {
+    "id": 64,
+    "name": "Блендер стационарный",
+    "category": "appliances",
+    "price": 121,
+    "image": "assets/products/product_64.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 65,
+    "name": "Набор кухонных ножей",
+    "category": "dishes",
+    "price": 158,
+    "image": "assets/products/product_65.jpg",
+    "badge": null
+  },
+  {
+    "id": 66,
+    "name": "Настольная LED лампа",
+    "category": "home",
+    "price": 114,
+    "image": "assets/products/product_66.jpg",
+    "badge": null
+  },
+  {
+    "id": 67,
+    "name": "Планетарный миксер",
+    "category": "appliances",
+    "price": 206,
+    "image": "assets/products/product_67.jpg",
+    "badge": null
+  },
+  {
+    "id": 68,
+    "name": "Доска разделочная бамбуковая",
+    "category": "dishes",
+    "price": 168,
+    "image": "assets/products/product_68.jpg",
+    "badge": null
+  },
+  {
+    "id": 69,
+    "name": "Настенные часы",
+    "category": "home",
+    "price": 135,
+    "image": "assets/products/product_69.jpg",
+    "badge": null
+  },
+  {
+    "id": 70,
+    "name": "Мясорубка электрическая",
+    "category": "appliances",
+    "price": 231,
+    "image": "assets/products/product_70.jpg",
+    "badge": null
+  },
+  {
+    "id": 71,
+    "name": "Стеклянная форма для запекания",
+    "category": "dishes",
+    "price": 190,
+    "image": "assets/products/product_71.jpg",
+    "badge": "Хит"
+  },
+  {
+    "id": 72,
+    "name": "Декоративная ваза",
+    "category": "home",
+    "price": 68,
+    "image": "assets/products/product_72.jpg",
+    "badge": null
+  },
+  {
+    "id": 73,
+    "name": "Чайник электрический",
+    "category": "appliances",
+    "price": 59,
+    "image": "assets/products/product_73.jpg",
+    "badge": null
+  },
+  {
+    "id": 74,
+    "name": "Салатница",
+    "category": "dishes",
+    "price": 229,
+    "image": "assets/products/product_74.jpg",
+    "badge": null
+  },
+  {
+    "id": 75,
+    "name": "Зеркало с подсветкой",
+    "category": "home",
+    "price": 166,
+    "image": "assets/products/product_75.jpg",
+    "badge": null
+  },
+  {
+    "id": 76,
+    "name": "Мультиварка",
+    "category": "appliances",
+    "price": 148,
+    "image": "assets/products/product_76.jpg",
+    "badge": null
+  },
+  {
+    "id": 77,
+    "name": "Терка универсальная",
+    "category": "dishes",
+    "price": 95,
+    "image": "assets/products/product_77.jpg",
+    "badge": null
+  },
+  {
+    "id": 78,
+    "name": "Корзина для белья",
+    "category": "home",
+    "price": 70,
+    "image": "assets/products/product_78.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 79,
+    "name": "Кухонный комбайн",
+    "category": "appliances",
+    "price": 142,
+    "image": "assets/products/product_79.jpg",
+    "badge": null
+  },
+  {
+    "id": 80,
+    "name": "Дуршлаг силиконовый",
+    "category": "dishes",
+    "price": 116,
+    "image": "assets/products/product_80.jpg",
+    "badge": null
+  },
+  {
+    "id": 81,
+    "name": "Текстильный органайзер",
+    "category": "home",
+    "price": 96,
+    "image": "assets/products/product_81.jpg",
+    "badge": "Хит"
+  },
+  {
+    "id": 82,
+    "name": "Кофемашина",
+    "category": "appliances",
+    "price": 147,
+    "image": "assets/products/product_82.jpg",
+    "badge": null
+  },
+  {
+    "id": 83,
+    "name": "Заварочный чайник",
+    "category": "dishes",
+    "price": 72,
+    "image": "assets/products/product_83.jpg",
+    "badge": null
+  },
+  {
+    "id": 84,
+    "name": "Теплый плед",
+    "category": "home",
+    "price": 123,
+    "image": "assets/products/product_84.jpg",
+    "badge": null
+  },
+  {
+    "id": 85,
+    "name": "Тостер",
+    "category": "appliances",
+    "price": 208,
+    "image": "assets/products/product_85.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 86,
+    "name": "Набор бокалов",
+    "category": "dishes",
+    "price": 196,
+    "image": "assets/products/product_86.jpg",
+    "badge": null
+  },
+  {
+    "id": 87,
+    "name": "Декоративная подушка",
+    "category": "home",
+    "price": 243,
+    "image": "assets/products/product_87.jpg",
+    "badge": null
+  },
+  {
+    "id": 88,
+    "name": "Соковыжималка",
+    "category": "appliances",
+    "price": 239,
+    "image": "assets/products/product_88.jpg",
+    "badge": null
+  },
+  {
+    "id": 89,
+    "name": "Контейнеры для хранения",
+    "category": "dishes",
+    "price": 231,
+    "image": "assets/products/product_89.jpg",
+    "badge": null
+  },
+  {
+    "id": 90,
+    "name": "Гладильная доска",
+    "category": "home",
+    "price": 210,
+    "image": "assets/products/product_90.jpg",
+    "badge": null
+  },
+  {
+    "id": 91,
+    "name": "Духовка электрическая",
+    "category": "appliances",
+    "price": 85,
+    "image": "assets/products/product_91.jpg",
+    "badge": "Хит"
+  },
+  {
+    "id": 92,
+    "name": "Набор кастрюль",
+    "category": "dishes",
+    "price": 61,
+    "image": "assets/products/product_92.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 93,
+    "name": "Комплект постельного белья",
+    "category": "home",
+    "price": 138,
+    "image": "assets/products/product_93.jpg",
+    "badge": null
+  },
+  {
+    "id": 94,
+    "name": "Стиральная машина",
+    "category": "appliances",
+    "price": 116,
+    "image": "assets/products/product_94.jpg",
+    "badge": null
+  },
+  {
+    "id": 95,
+    "name": "Сковорода гриль",
+    "category": "dishes",
+    "price": 234,
+    "image": "assets/products/product_95.jpg",
+    "badge": null
+  },
+  {
+    "id": 96,
+    "name": "Полотенце махровое",
+    "category": "home",
+    "price": 215,
+    "image": "assets/products/product_96.jpg",
+    "badge": null
+  },
+  {
+    "id": 97,
+    "name": "Холодильник",
+    "category": "appliances",
+    "price": 53,
+    "image": "assets/products/product_97.jpg",
+    "badge": null
+  },
+  {
+    "id": 98,
+    "name": "Тарелка керамическая",
+    "category": "dishes",
+    "price": 80,
+    "image": "assets/products/product_98.jpg",
+    "badge": null
+  },
+  {
+    "id": 99,
+    "name": "Ортопедическая подушка",
+    "category": "home",
+    "price": 176,
+    "image": "assets/products/product_99.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 100,
+    "name": "Микроволновая печь",
+    "category": "appliances",
+    "price": 86,
+    "image": "assets/products/product_100.jpg",
+    "badge": null
+  },
+  {
+    "id": 101,
+    "name": "Набор столовых приборов",
+    "category": "dishes",
+    "price": 117,
+    "image": "assets/products/product_101.jpg",
+    "badge": "Хит"
+  },
+  {
+    "id": 102,
+    "name": "Одеяло стеганое",
+    "category": "home",
+    "price": 192,
+    "image": "assets/products/product_102.jpg",
+    "badge": null
+  },
+  {
+    "id": 103,
+    "name": "Пылесос",
+    "category": "appliances",
+    "price": 219,
+    "image": "assets/products/product_103.jpg",
+    "badge": null
+  },
+  {
+    "id": 104,
+    "name": "Чайный сервиз",
+    "category": "dishes",
+    "price": 137,
+    "image": "assets/products/product_104.jpg",
+    "badge": null
+  },
+  {
+    "id": 105,
+    "name": "Мягкий коврик",
+    "category": "home",
+    "price": 215,
+    "image": "assets/products/product_105.jpg",
+    "badge": null
+  },
+  {
+    "id": 106,
+    "name": "Утюг",
+    "category": "appliances",
+    "price": 242,
+    "image": "assets/products/product_106.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 107,
+    "name": "Кружка фарфоровая",
+    "category": "dishes",
+    "price": 217,
+    "image": "assets/products/product_107.jpg",
+    "badge": null
+  },
+  {
+    "id": 108,
+    "name": "Плотные шторы",
+    "category": "home",
+    "price": 87,
+    "image": "assets/products/product_108.jpg",
+    "badge": null
+  },
+  {
+    "id": 109,
+    "name": "Блендер стационарный",
+    "category": "appliances",
+    "price": 64,
+    "image": "assets/products/product_109.jpg",
+    "badge": null
+  },
+  {
+    "id": 110,
+    "name": "Набор кухонных ножей",
+    "category": "dishes",
+    "price": 110,
+    "image": "assets/products/product_110.jpg",
+    "badge": null
+  },
+  {
+    "id": 111,
+    "name": "Настольная LED лампа",
+    "category": "home",
+    "price": 96,
+    "image": "assets/products/product_111.jpg",
+    "badge": "Хит"
+  },
+  {
+    "id": 112,
+    "name": "Планетарный миксер",
+    "category": "appliances",
+    "price": 79,
+    "image": "assets/products/product_112.jpg",
+    "badge": null
+  },
+  {
+    "id": 113,
+    "name": "Доска разделочная бамбуковая",
+    "category": "dishes",
+    "price": 195,
+    "image": "assets/products/product_113.jpg",
+    "badge": "Новинка"
+  },
+  {
+    "id": 114,
+    "name": "Настенные часы",
+    "category": "home",
+    "price": 182,
+    "image": "assets/products/product_114.jpg",
+    "badge": null
+  },
+  {
+    "id": 115,
+    "name": "Мясорубка электрическая",
+    "category": "appliances",
+    "price": 104,
+    "image": "assets/products/product_115.jpg",
+    "badge": null
+  },
+  {
+    "id": 116,
+    "name": "Стеклянная форма для запекания",
+    "category": "dishes",
+    "price": 192,
+    "image": "assets/products/product_116.jpg",
+    "badge": null
+  },
+  {
+    "id": 117,
+    "name": "Декоративная ваза",
+    "category": "home",
+    "price": 117,
+    "image": "assets/products/product_117.jpg",
+    "badge": null
+  }
+]

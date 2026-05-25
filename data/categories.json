@@ -1,0 +1,23 @@
+[
+  {
+    "id": "appliances",
+    "name_ru": "Техника",
+    "name_tj": "Техника",
+    "name_en": "Appliances",
+    "icon": "ph ph-plugs"
+  },
+  {
+    "id": "dishes",
+    "name_ru": "Посуда",
+    "name_tj": "Зарфҳо",
+    "name_en": "Tableware",
+    "icon": "ph ph-coffee"
+  },
+  {
+    "id": "home",
+    "name_ru": "Товары для дома",
+    "name_tj": "Маҳсулоти хона",
+    "name_en": "Home Goods",
+    "icon": "ph ph-house-line"
+  }
+]
