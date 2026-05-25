@@ -16,6 +16,7 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "heic-convert": "^2.1.0",
-    "jpeg-js": "^0.4.4"
+    "jpeg-js": "^0.4.4",
+    "mongoose": "^9.6.2"
   }
 }
