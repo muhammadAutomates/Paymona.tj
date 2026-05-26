@@ -134,29 +134,46 @@ if (MONGODB_URI) {
             console.log('=================================================');
             isMongo = true;
 
-            // 1. Auto-seed Categories from JSON if collection is empty
+            // 1. Sync Categories from JSON
             try {
-                const count = await CategoryModel.countDocuments();
-                if (count === 0) {
-                    const defaultCats = readJSON(CATEGORIES_PATH);
-                    if (defaultCats.length > 0) {
-                        await CategoryModel.insertMany(defaultCats);
-                        console.log(`Seeded ${defaultCats.length} default categories to MongoDB.`);
+                const defaultCats = readJSON(CATEGORIES_PATH);
+                if (defaultCats.length > 0) {
+                    for (const c of defaultCats) {
+                        const existing = await CategoryModel.findOne({ id: c.id });
+                        if (!existing) {
+                            await CategoryModel.create(c);
+                        } else {
+                            await CategoryModel.updateOne(
+                                { id: c.id },
+                                { $set: { name_ru: c.name_ru, name_tj: c.name_tj, name_en: c.name_en, icon: c.icon } }
+                            );
+                        }
                     }
+                    console.log('Categories successfully synced/updated in MongoDB Cloud.');
                 }
-            } catch (e) { console.error('Failed to seed categories:', e); }
+            } catch (e) { console.error('Failed to sync categories:', e); }
 
-            // 2. Auto-seed Products from JSON if collection is empty
+            // 2. Sync Products from JSON (fixing missing images)
             try {
-                const count = await ProductModel.countDocuments();
-                if (count === 0) {
-                    const defaultProds = readJSON(PRODUCTS_PATH);
-                    if (defaultProds.length > 0) {
-                        await ProductModel.insertMany(defaultProds);
-                        console.log(`Seeded ${defaultProds.length} default products to MongoDB.`);
+                const defaultProds = readJSON(PRODUCTS_PATH);
+                if (defaultProds.length > 0) {
+                    for (const p of defaultProds) {
+                        const existing = await ProductModel.findOne({ id: p.id });
+                        if (!existing) {
+                            await ProductModel.create(p);
+                        } else {
+                            // Update fields, especially the image path, if changed
+                            if (existing.image !== p.image || existing.name !== p.name || existing.price !== p.price) {
+                                await ProductModel.updateOne(
+                                    { id: p.id },
+                                    { $set: { image: p.image, name: p.name, price: p.price, oldPrice: p.oldPrice } }
+                                );
+                            }
+                        }
                     }
+                    console.log('Products successfully synced/updated in MongoDB Cloud.');
                 }
-            } catch (e) { console.error('Failed to seed products:', e); }
+            } catch (e) { console.error('Failed to sync products:', e); }
 
             // 3. Auto-seed Settings from JSON if empty
             try {

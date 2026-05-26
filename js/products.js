@@ -1,11 +1,10 @@
-const products =  
-[
+const products = [
   {
     "id": 1,
     "name": "Духовка электрическая",
     "category": "appliances",
     "price": 225,
-    "image": "assets/products/product_1.jpg",
+    "image": "assets/products/product_34.jpg",
     "badge": "Хит"
   },
   {
@@ -13,7 +12,7 @@ const products =
     "name": "Набор кастрюль",
     "category": "dishes",
     "price": 65,
-    "image": "assets/products/product_2.jpg",
+    "image": "assets/products/product_44.jpg",
     "badge": null
   },
   {
@@ -21,7 +20,7 @@ const products =
     "name": "Комплект постельного белья",
     "category": "home",
     "price": 146,
-    "image": "assets/products/product_3.jpg",
+    "image": "assets/products/product_45.jpg",
     "badge": null
   },
   {
@@ -29,7 +28,7 @@ const products =
     "name": "Стиральная машина",
     "category": "appliances",
     "price": 115,
-    "image": "assets/products/product_4.jpg",
+    "image": "assets/products/product_43.jpg",
     "badge": null
   },
   {
@@ -37,7 +36,7 @@ const products =
     "name": "Сковорода гриль",
     "category": "dishes",
     "price": 90,
-    "image": "assets/products/product_5.jpg",
+    "image": "assets/products/product_53.jpg",
     "badge": null
   },
   {
@@ -45,7 +44,7 @@ const products =
     "name": "Полотенце махровое",
     "category": "home",
     "price": 220,
-    "image": "assets/products/product_6.jpg",
+    "image": "assets/products/product_57.jpg",
     "badge": null
   },
   {
@@ -53,7 +52,7 @@ const products =
     "name": "Холодильник",
     "category": "appliances",
     "price": 225,
-    "image": "assets/products/product_7.jpg",
+    "image": "assets/products/product_55.jpg",
     "badge": null
   },
   {
@@ -61,7 +60,7 @@ const products =
     "name": "Тарелка керамическая",
     "category": "dishes",
     "price": 94,
-    "image": "assets/products/product_8.jpg",
+    "image": "assets/products/product_65.jpg",
     "badge": "Новинка"
   },
   {
@@ -69,7 +68,7 @@ const products =
     "name": "Ортопедическая подушка",
     "category": "home",
     "price": 72,
-    "image": "assets/products/product_9.jpg",
+    "image": "assets/products/product_72.jpg",
     "badge": null
   },
   {
@@ -77,7 +76,7 @@ const products =
     "name": "Микроволновая печь",
     "category": "appliances",
     "price": 65,
-    "image": "assets/products/product_10.jpg",
+    "image": "assets/products/product_70.jpg",
     "badge": null
   },
   {
@@ -85,7 +84,7 @@ const products =
     "name": "Набор столовых приборов",
     "category": "dishes",
     "price": 138,
-    "image": "assets/products/product_11.jpg",
+    "image": "assets/products/product_74.jpg",
     "badge": "Хит"
   },
   {
@@ -93,7 +92,7 @@ const products =
     "name": "Одеяло стеганое",
     "category": "home",
     "price": 84,
-    "image": "assets/products/product_12.jpg",
+    "image": "assets/products/product_81.jpg",
     "badge": null
   },
   {
@@ -101,7 +100,7 @@ const products =
     "name": "Пылесос",
     "category": "appliances",
     "price": 164,
-    "image": "assets/products/product_13.jpg",
+    "image": "assets/products/product_79.jpg",
     "badge": null
   },
   {
@@ -109,7 +108,7 @@ const products =
     "name": "Чайный сервиз",
     "category": "dishes",
     "price": 102,
-    "image": "assets/products/product_14.jpg",
+    "image": "assets/products/product_83.jpg",
     "badge": null
   },
   {
@@ -117,7 +116,7 @@ const products =
     "name": "Мягкий коврик",
     "category": "home",
     "price": 176,
-    "image": "assets/products/product_15.jpg",
+    "image": "assets/products/product_93.jpg",
     "badge": "Новинка"
   },
   {
@@ -125,7 +124,7 @@ const products =
     "name": "Утюг",
     "category": "appliances",
     "price": 228,
-    "image": "assets/products/product_16.jpg",
+    "image": "assets/products/product_88.jpg",
     "badge": null
   },
   {
@@ -133,7 +132,7 @@ const products =
     "name": "Кружка фарфоровая",
     "category": "dishes",
     "price": 206,
-    "image": "assets/products/product_17.jpg",
+    "image": "assets/products/product_98.jpg",
     "badge": null
   },
   {
@@ -141,7 +140,7 @@ const products =
     "name": "Плотные шторы",
     "category": "home",
     "price": 50,
-    "image": "assets/products/product_18.jpg",
+    "image": "assets/products/product_105.jpg",
     "badge": null
   },
   {
@@ -149,7 +148,7 @@ const products =
     "name": "Блендер стационарный",
     "category": "appliances",
     "price": 123,
-    "image": "assets/products/product_19.jpg",
+    "image": "assets/products/product_100.jpg",
     "badge": null
   },
   {
@@ -157,7 +156,7 @@ const products =
     "name": "Набор кухонных ножей",
     "category": "dishes",
     "price": 184,
-    "image": "assets/products/product_20.jpg",
+    "image": "assets/products/product_110.jpg",
     "badge": null
   },
   {
@@ -165,7 +164,7 @@ const products =
     "name": "Настольная LED лампа",
     "category": "home",
     "price": 156,
-    "image": "assets/products/product_21.jpg",
+    "image": "assets/products/product_114.jpg",
     "badge": "Хит"
   },
   {
@@ -173,7 +172,7 @@ const products =
     "name": "Планетарный миксер",
     "category": "appliances",
     "price": 141,
-    "image": "assets/products/product_22.jpg",
+    "image": "assets/products/product_112.jpg",
     "badge": "Новинка"
   },
   {
@@ -181,7 +180,7 @@ const products =
     "name": "Доска разделочная бамбуковая",
     "category": "dishes",
     "price": 68,
-    "image": "assets/products/product_23.jpg",
+    "image": "assets/products/product_41.jpg",
     "badge": null
   },
   {
@@ -189,7 +188,7 @@ const products =
     "name": "Настенные часы",
     "category": "home",
     "price": 204,
-    "image": "assets/products/product_24.jpg",
+    "image": "assets/products/product_42.jpg",
     "badge": null
   },
   {
@@ -197,7 +196,7 @@ const products =
     "name": "Мясорубка электрическая",
     "category": "appliances",
     "price": 160,
-    "image": "assets/products/product_25.jpg",
+    "image": "assets/products/product_37.jpg",
     "badge": null
   },
   {
@@ -205,7 +204,7 @@ const products =
     "name": "Стеклянная форма для запекания",
     "category": "dishes",
     "price": 217,
-    "image": "assets/products/product_26.jpg",
+    "image": "assets/products/product_50.jpg",
     "badge": null
   },
   {
@@ -213,7 +212,7 @@ const products =
     "name": "Декоративная ваза",
     "category": "home",
     "price": 150,
-    "image": "assets/products/product_27.jpg",
+    "image": "assets/products/product_54.jpg",
     "badge": null
   },
   {
@@ -221,7 +220,7 @@ const products =
     "name": "Чайник электрический",
     "category": "appliances",
     "price": 143,
-    "image": "assets/products/product_28.jpg",
+    "image": "assets/products/product_46.jpg",
     "badge": null
   },
   {
@@ -229,7 +228,7 @@ const products =
     "name": "Салатница",
     "category": "dishes",
     "price": 139,
-    "image": "assets/products/product_29.jpg",
+    "image": "assets/products/product_59.jpg",
     "badge": "Новинка"
   },
   {
@@ -237,7 +236,7 @@ const products =
     "name": "Зеркало с подсветкой",
     "category": "home",
     "price": 105,
-    "image": "assets/products/product_30.jpg",
+    "image": "assets/products/product_69.jpg",
     "badge": null
   },
   {
@@ -245,7 +244,7 @@ const products =
     "name": "Мультиварка",
     "category": "appliances",
     "price": 120,
-    "image": "assets/products/product_31.jpg",
+    "image": "assets/products/product_58.jpg",
     "badge": "Хит"
   },
   {
@@ -253,7 +252,7 @@ const products =
     "name": "Терка универсальная",
     "category": "dishes",
     "price": 154,
-    "image": "assets/products/product_32.jpg",
+    "image": "assets/products/product_71.jpg",
     "badge": null
   },
   {
@@ -277,7 +276,7 @@ const products =
     "name": "Дуршлаг силиконовый",
     "category": "dishes",
     "price": 136,
-    "image": "assets/products/product_35.jpg",
+    "image": "assets/products/product_80.jpg",
     "badge": null
   },
   {
@@ -285,7 +284,7 @@ const products =
     "name": "Текстильный органайзер",
     "category": "home",
     "price": 220,
-    "image": "assets/products/product_36.jpg",
+    "image": "assets/products/product_90.jpg",
     "badge": "Новинка"
   },
   {
@@ -301,7 +300,7 @@ const products =
     "name": "Заварочный чайник",
     "category": "dishes",
     "price": 125,
-    "image": "assets/products/product_38.jpg",
+    "image": "assets/products/product_92.jpg",
     "badge": null
   },
   {
@@ -309,7 +308,7 @@ const products =
     "name": "Теплый плед",
     "category": "home",
     "price": 210,
-    "image": "assets/products/product_39.jpg",
+    "image": "assets/products/product_102.jpg",
     "badge": null
   },
   {
@@ -389,7 +388,7 @@ const products =
     "name": "Стиральная машина",
     "category": "appliances",
     "price": 183,
-    "image": "assets/products/product_49.jpg",
+    "image": "assets/products/product_40.jpg",
     "badge": null
   },
   {
@@ -405,7 +404,7 @@ const products =
     "name": "Полотенце махровое",
     "category": "home",
     "price": 94,
-    "image": "assets/products/product_51.jpg",
+    "image": "assets/products/product_66.jpg",
     "badge": "Хит"
   },
   {
@@ -477,7 +476,7 @@ const products =
     "name": "Мягкий коврик",
     "category": "home",
     "price": 65,
-    "image": "assets/products/product_60.jpg",
+    "image": "assets/products/product_99.jpg",
     "badge": null
   },
   {
@@ -485,7 +484,7 @@ const products =
     "name": "Утюг",
     "category": "appliances",
     "price": 196,
-    "image": "assets/products/product_61.jpg",
+    "image": "assets/products/product_85.jpg",
     "badge": "Хит"
   },
   {
@@ -493,7 +492,7 @@ const products =
     "name": "Кружка фарфоровая",
     "category": "dishes",
     "price": 125,
-    "image": "assets/products/product_62.jpg",
+    "image": "assets/products/product_101.jpg",
     "badge": null
   },
   {
@@ -501,7 +500,7 @@ const products =
     "name": "Плотные шторы",
     "category": "home",
     "price": 50,
-    "image": "assets/products/product_63.jpg",
+    "image": "assets/products/product_108.jpg",
     "badge": null
   },
   {
@@ -509,7 +508,7 @@ const products =
     "name": "Блендер стационарный",
     "category": "appliances",
     "price": 121,
-    "image": "assets/products/product_64.jpg",
+    "image": "assets/products/product_97.jpg",
     "badge": "Новинка"
   },
   {
@@ -685,7 +684,7 @@ const products =
     "name": "Набор бокалов",
     "category": "dishes",
     "price": 196,
-    "image": "assets/products/product_86.jpg",
+    "image": "assets/products/product_110.jpg",
     "badge": null
   },
   {
@@ -693,7 +692,7 @@ const products =
     "name": "Декоративная подушка",
     "category": "home",
     "price": 243,
-    "image": "assets/products/product_87.jpg",
+    "image": "assets/products/product_114.jpg",
     "badge": null
   },
   {
@@ -749,7 +748,7 @@ const products =
     "name": "Стиральная машина",
     "category": "appliances",
     "price": 116,
-    "image": "assets/products/product_94.jpg",
+    "image": "assets/products/product_37.jpg",
     "badge": null
   },
   {
@@ -757,7 +756,7 @@ const products =
     "name": "Сковорода гриль",
     "category": "dishes",
     "price": 234,
-    "image": "assets/products/product_95.jpg",
+    "image": "assets/products/product_59.jpg",
     "badge": null
   },
   {
@@ -765,7 +764,7 @@ const products =
     "name": "Полотенце махровое",
     "category": "home",
     "price": 215,
-    "image": "assets/products/product_96.jpg",
+    "image": "assets/products/product_69.jpg",
     "badge": null
   },
   {
@@ -821,7 +820,7 @@ const products =
     "name": "Пылесос",
     "category": "appliances",
     "price": 219,
-    "image": "assets/products/product_103.jpg",
+    "image": "assets/products/product_73.jpg",
     "badge": null
   },
   {
@@ -829,7 +828,7 @@ const products =
     "name": "Чайный сервиз",
     "category": "dishes",
     "price": 137,
-    "image": "assets/products/product_104.jpg",
+    "image": "assets/products/product_92.jpg",
     "badge": null
   },
   {
