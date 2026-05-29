@@ -54,6 +54,70 @@
         .status-badge { font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; padding: 5px 12px; }
         .status-badge.new { background-color: var(--brand-red-light); color: var(--brand-red); }
         .status-badge.completed { background-color: rgba(22, 163, 74, 0.08); color: #16A34A; }
+
+        /* Drag-and-drop image upload styles */
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            background: var(--bg-alt);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            min-height: 140px;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--brand-red);
+            background: var(--brand-red-light);
+        }
+        .upload-zone i {
+            font-size: 2.2rem;
+            color: var(--brand-red);
+        }
+        .upload-zone p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .upload-zone .preview-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: var(--bg-alt);
+            z-index: 2;
+        }
+        .upload-zone .remove-preview-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(15, 23, 42, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 3;
+            font-size: 0.95rem;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-sm);
+        }
+        .upload-zone .remove-preview-btn:hover {
+            background: var(--brand-red);
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body class="admin-body">
@@ -107,7 +171,7 @@
             </nav>
             
             <div class="admin-sidebar-footer">
-                <button id="adminLogoutBtn" class="admin-menu-item w-100" style="background: none; color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.15);">
+                <button id="adminLogoutBtn" class="admin-menu-item w-100" style="background: none; color: var(--brand-red); border: 1px solid var(--border-glow);">
                     <i class="ph ph-sign-out"></i>
                     <span class="menu-label">Выйти</span>
                 </button>
@@ -423,8 +487,19 @@
 
                     <div class="admin-form-grid">
                         <div class="admin-form-group">
-                            <label class="admin-form-label">Главное фото (Путь / URL)</label>
-                            <input type="text" id="formProductImage" class="admin-form-input" required placeholder="assets/products/product_15.jpg">
+                            <label class="admin-form-label">Главное фото товара</label>
+                            
+                            <!-- Drag & Drop Zone -->
+                            <div id="productImageUploadZone" class="upload-zone" style="margin-bottom: 10px;">
+                                <i class="ph ph-cloud-arrow-up"></i>
+                                <p style="margin: 0; font-weight: 600;">Перетащите фото сюда или нажмите для выбора</p>
+                                <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted);">Форматы: JPG, PNG, WEBP</p>
+                                <input type="file" id="formProductFile" accept="image/*" style="display: none;">
+                                <img id="uploadPreviewImg" class="preview-img" style="display: none;" src="" alt="Preview">
+                                <button type="button" id="removePreviewBtn" class="remove-preview-btn" style="display: none;" title="Удалить фото"><i class="ph ph-trash"></i></button>
+                            </div>
+                            
+                            <input type="text" id="formProductImage" class="admin-form-input" required placeholder="Путь к фото (заполнится автоматически или введите вручную)">
                         </div>
                         <div class="admin-form-group">
                             <label class="admin-form-label">Ссылка на видео (Путь / YouTube URL)</label>
@@ -919,6 +994,11 @@
             renderColorTagsManager();
             renderSizeTagsManager();
             
+            // Reset upload preview
+            document.getElementById('uploadPreviewImg').style.display = 'none';
+            document.getElementById('uploadPreviewImg').src = '';
+            document.getElementById('removePreviewBtn').style.display = 'none';
+            
             pModal.classList.add('active');
         }
 
@@ -943,11 +1023,130 @@
             renderColorTagsManager();
             renderSizeTagsManager();
             
+            // Set upload preview
+            if (p.image) {
+                document.getElementById('uploadPreviewImg').src = p.image;
+                document.getElementById('uploadPreviewImg').style.display = 'block';
+                document.getElementById('removePreviewBtn').style.display = 'block';
+            } else {
+                document.getElementById('uploadPreviewImg').style.display = 'none';
+                document.getElementById('uploadPreviewImg').src = '';
+                document.getElementById('removePreviewBtn').style.display = 'none';
+            }
+            
             pModal.classList.add('active');
         }
 
         function closeProductModal() {
             pModal.classList.remove('active');
+        }
+
+        // --- DRAG & DROP FILE UPLOAD HANDLERS ---
+        const uploadZone = document.getElementById('productImageUploadZone');
+        const fileInput = document.getElementById('formProductFile');
+        const previewImg = document.getElementById('uploadPreviewImg');
+        const removePreviewBtn = document.getElementById('removePreviewBtn');
+        const imageInput = document.getElementById('formProductImage');
+
+        // Handle click on zone to trigger file picker
+        uploadZone.addEventListener('click', (e) => {
+            // Prevent trigger if they click the remove button
+            if (e.target.closest('#removePreviewBtn')) return;
+            fileInput.click();
+        });
+
+        // Trigger upload when file selected
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+
+        // Drag & Drop events
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadZone.classList.add('dragover');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadZone.classList.remove('dragover');
+            }, false);
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+
+        // Sync preview when user types manually in input box
+        imageInput.addEventListener('input', (e) => {
+            const val = e.target.value.trim();
+            if (val) {
+                previewImg.src = val;
+                previewImg.style.display = 'block';
+                removePreviewBtn.style.display = 'block';
+            } else {
+                previewImg.style.display = 'none';
+                removePreviewBtn.style.display = 'none';
+            }
+        });
+
+        // Remove preview photo
+        removePreviewBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            previewImg.style.display = 'none';
+            previewImg.src = '';
+            removePreviewBtn.style.display = 'none';
+            imageInput.value = '';
+            fileInput.value = '';
+        });
+
+        // Upload file to server helper
+        async function handleFileUpload(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Пожалуйста, выберите файл изображения!');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('photo', file);
+
+            try {
+                uploadZone.style.opacity = '0.7';
+                
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                uploadZone.style.opacity = '1';
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        imageInput.value = data.imagePath;
+                        previewImg.src = data.imagePath;
+                        previewImg.style.display = 'block';
+                        removePreviewBtn.style.display = 'block';
+                    }
+                } else {
+                    const err = await response.json();
+                    alert(err.error || 'Ошибка загрузки файла');
+                }
+            } catch (err) {
+                uploadZone.style.opacity = '1';
+                alert('Ошибка соединения с сервером при загрузке!');
+                console.error(err);
+            }
         }
 
         openBtn?.addEventListener('click', openAddProductModal);

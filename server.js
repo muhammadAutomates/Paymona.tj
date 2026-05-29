@@ -3,6 +3,24 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
+const multer = require('multer');
+
+// Configure multer for product images upload
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dest = path.join(__dirname, 'assets', 'products');
+        if (!fs.existsSync(dest)) {
+            fs.mkdirSync(dest, { recursive: true });
+        }
+        cb(null, dest);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname);
+        const uniqueName = 'uploaded_' + Date.now() + '_' + Math.round(Math.random() * 1E9) + ext;
+        cb(null, uniqueName);
+    }
+});
+const upload = multer({ storage: storage });
 
 const app = express();
 const PORT = 3000;
@@ -243,6 +261,19 @@ function initializeMockTraffic() {
 initializeMockTraffic();
 
 // --- API ENDPOINTS ---
+
+// File Upload API
+app.post('/api/upload', upload.single('photo'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Файл не загружен' });
+        }
+        const relativePath = `assets/products/${req.file.filename}`;
+        res.json({ success: true, imagePath: relativePath });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // Settings APIs
 app.get('/api/settings', async (req, res) => {
