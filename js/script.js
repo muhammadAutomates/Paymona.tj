@@ -86,6 +86,13 @@ function getSessionToken() {
     return token;
 }
 
+// Get current active language with safe fallback
+function getCurrentLang() {
+    let lang = document.getElementById('langSelect')?.value || 'ru';
+    if (!i18n[lang]) lang = 'ru';
+    return lang;
+}
+
 // Check backend status and fetch live products
 async function loadStoreProducts() {
     try {
@@ -214,6 +221,8 @@ function renderCatalog() {
         filtered.forEach(p => {
             catalogGrid.appendChild(createProductCard(p));
         });
+        // Trigger scroll reveals for catalog items
+        initScrollReveal();
     }
 }
 
@@ -266,7 +275,7 @@ function renderPopularProducts() {
 
 // Helper to construct a beautiful Product Card HTML node
 function createProductCard(p) {
-    const lang = document.getElementById('langSelect').value;
+    const lang = getCurrentLang();
     const card = document.createElement('div');
     card.className = 'product-card scroll-reveal reveal-scale';
     
@@ -395,7 +404,7 @@ function setupLanguageSwitcher() {
 }
 
 function translatePage() {
-    const lang = document.getElementById('langSelect').value;
+    const lang = getCurrentLang();
     
     // Localize texts
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -757,7 +766,7 @@ document.getElementById('detailQtyPlus')?.addEventListener('click', () => {
 document.getElementById('detailAddToCartBtn')?.addEventListener('click', () => {
     if (!activeProduct) return;
     
-    const lang = document.getElementById('langSelect').value;
+    const lang = getCurrentLang();
     
     // Validation check for color & sizes selection if product has variations
     if (activeProduct.colors && activeProduct.colors.length > 0 && !activeSelectedColor) {
@@ -953,7 +962,7 @@ function updateCartCounts() {
 function renderCartItems() {
     const list = document.getElementById('cartItemsList');
     const totalEl = document.getElementById('cartTotalPrice');
-    const lang = document.getElementById('langSelect').value;
+    const lang = getCurrentLang();
     
     if (!list) return;
     list.innerHTML = '';
@@ -1038,7 +1047,7 @@ document.getElementById('checkoutForm')?.addEventListener('submit', async (e) =>
     
     const phoneInput = document.getElementById('checkoutPhoneInput');
     const submitBtn = document.getElementById('checkoutSubmitBtn');
-    const lang = document.getElementById('langSelect').value;
+    const lang = getCurrentLang();
     
     const totalVal = shoppingCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
