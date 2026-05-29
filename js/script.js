@@ -1093,59 +1093,6 @@ document.getElementById('globalSearchInput')?.addEventListener('keypress', (e) =
     }
 });
 
-// Mouse Follower Cursor Effect with Inertia
-function initCursorFollower() {
-    // Skip cursor follower on touch screens or mobile viewports
-    if (window.matchMedia('(max-width: 1024px)').matches || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)) {
-        return;
-    }
-
-    const follower = document.createElement('div');
-    follower.className = 'cursor-follower';
-    follower.id = 'cursorFollower';
-    document.body.appendChild(follower);
-
-    let mouseX = 0, mouseY = 0;
-    let followerX = 0, followerY = 0;
-    let isVisible = false;
-
-    window.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        if (!isVisible) {
-            follower.style.display = 'block';
-            isVisible = true;
-        }
-    });
-
-    // Inertia chase animation loop
-    function animate() {
-        const chaseFactor = 0.12;
-        followerX += (mouseX - followerX) * chaseFactor;
-        followerY += (mouseY - followerY) * chaseFactor;
-
-        follower.style.left = `${followerX}px`;
-        follower.style.top = `${followerY}px`;
-
-        requestAnimationFrame(animate);
-    }
-    animate();
-
-    // Expand follower on hovering clickable items
-    const clickables = 'a, button, .product-card, .category-card, .upload-zone, input, select, textarea, [onclick]';
-    document.addEventListener('mouseover', (e) => {
-        if (e.target.closest(clickables)) {
-            follower.classList.add('hovered');
-        }
-    });
-
-    document.addEventListener('mouseout', (e) => {
-        if (e.target.closest(clickables)) {
-            follower.classList.remove('hovered');
-        }
-    });
-}
-
 // --- CORE BOOTSTRAPPER ---
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Languages setups
@@ -1168,7 +1115,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 7. Initial counts sync
     updateCartCounts();
-
-    // 8. Initialize Mouse Follower
-    initCursorFollower();
 });

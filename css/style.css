@@ -2469,41 +2469,8 @@ textarea.form-input {
     filter: blur(0);
 }
 
-/* Cursor Follower Glow Spotlight Effect */
-.cursor-follower {
-    width: 260px;
-    height: 260px;
-    background: radial-gradient(circle, rgba(200, 55, 45, 0.16) 0%, rgba(200, 55, 45, 0.05) 45%, transparent 70%);
-    border-radius: 50%;
-    position: fixed;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-    filter: blur(12px);
-    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
-                height 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
-                background 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-                filter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    display: none;
-}
-
-/* Cursor Follower Hover State (Condenses and intensifies the light around clickables) */
-.cursor-follower.hovered {
-    width: 110px;
-    height: 110px;
-    background: radial-gradient(circle, rgba(200, 55, 45, 0.45) 0%, rgba(200, 55, 45, 0.15) 50%, transparent 80%);
-    filter: blur(5px);
-}
-
-/* Interactive elements light up when hovered, responding to the glow */
+/* Interactive elements light up when hovered */
 a:hover, button:hover, .product-card:hover, .category-card:hover, .upload-zone:hover, .search-container:focus-within {
     box-shadow: 0 0 25px rgba(200, 55, 45, 0.35) !important;
     border-color: rgba(200, 55, 45, 0.6) !important;
-}
-
-/* Hide cursor follower on mobile and touch devices */
-@media (max-width: 1024px) or (pointer: coarse) {
-    .cursor-follower {
-        display: none !important;
-    }
 }
