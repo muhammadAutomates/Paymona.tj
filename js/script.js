@@ -268,7 +268,7 @@ function renderPopularProducts() {
 function createProductCard(p) {
     const lang = document.getElementById('langSelect').value;
     const card = document.createElement('div');
-    card.className = 'product-card scroll-reveal';
+    card.className = 'product-card scroll-reveal reveal-scale';
     
     // Badges setup
     let badgeHtml = '';
@@ -535,13 +535,22 @@ async function logVisitorVisit() {
 function initScrollReveal() {
     const reveals = document.querySelectorAll('.scroll-reveal');
     
+    // Auto-stagger delay for elements inside grids/flex layouts
+    const containers = document.querySelectorAll('.product-grid, .categories-grid, .hero-buttons, #popularProductsGrid');
+    containers.forEach(container => {
+        const items = container.querySelectorAll('.scroll-reveal');
+        items.forEach((item, idx) => {
+            item.style.transitionDelay = `${idx * 0.08}s`;
+        });
+    });
+    
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('active');
             }
         });
-    }, { threshold: 0.08 });
+    }, { threshold: 0.05 });
     
     reveals.forEach(r => observer.observe(r));
 }
