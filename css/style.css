@@ -176,7 +176,7 @@ button {
     font-size: 5.5rem;
     font-weight: 900;
     letter-spacing: -2px;
-    background: linear-gradient(135deg, #ffffff 30%, var(--brand-red) 100%);
+    background: linear-gradient(135deg, #ff7e75 0%, var(--brand-red) 60%, var(--brand-red-hover) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 8px;
@@ -874,7 +874,8 @@ button {
 }
 
 .product-badge.new {
-    background-color: #2563EB;
+    background-color: #0F172A;
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .product-image-wrap {
@@ -2443,4 +2444,39 @@ textarea.form-input {
 .scroll-reveal.active {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* Cursor Follower Effect */
+.cursor-follower {
+    width: 18px;
+    height: 18px;
+    background-color: rgba(200, 55, 45, 0.15);
+    border: 2px solid var(--brand-red);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 10000;
+    transform: translate(-50%, -50%);
+    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                height 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: none;
+}
+
+/* Cursor Follower Hover State for Clickables */
+.cursor-follower.hovered {
+    width: 42px;
+    height: 42px;
+    background-color: rgba(200, 55, 45, 0.08);
+    border-color: var(--brand-red);
+    box-shadow: 0 0 20px var(--brand-red-glow);
+}
+
+/* Hide cursor follower on mobile and touch devices */
+@media (max-width: 1024px) or (pointer: coarse) {
+    .cursor-follower {
+        display: none !important;
+    }
 }

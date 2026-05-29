@@ -152,14 +152,37 @@ function initCatalogPage() {
         });
     });
     
-    // Bind Search Input dynamic typing
+    // Bind Search Input dynamic typing and enter key triggers
     const searchInputs = document.querySelectorAll('.search-input');
     searchInputs.forEach(input => {
         input.addEventListener('input', (e) => {
             searchQuery = e.target.value;
             // Sync all search inputs across page
             searchInputs.forEach(i => { if (i !== input) i.value = searchQuery; });
-            renderCatalog();
+            
+            // Only trigger catalog render if we are on the catalog page
+            if (document.getElementById('productsGrid')) {
+                renderCatalog();
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                window.location.href = `catalog.html?search=${encodeURIComponent(query)}`;
+            }
+        });
+    });
+
+    // Bind Search Button click redirection
+    document.querySelectorAll('.search-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const container = btn.parentElement;
+            const input = container.querySelector('.search-input');
+            if (input) {
+                const query = input.value.trim();
+                window.location.href = `catalog.html?search=${encodeURIComponent(query)}`;
+            }
         });
     });
     
@@ -483,8 +506,8 @@ function setupWelcomePortal() {
         return;
     }
     
-    // Init canvas particles inside welcome screen (white/red blend particles)
-    initParticles('welcomeCanvas', 'rgba(255, 255, 255, ALPHA)');
+    // Init canvas particles inside welcome screen (red particles matching brand accent)
+    initParticles('welcomeCanvas', 'rgba(200, 55, 45, ALPHA)');
     
     enterBtn.addEventListener('click', () => {
         sessionStorage.setItem('paymona_entered', 'true');
@@ -1089,6 +1112,59 @@ document.getElementById('globalSearchInput')?.addEventListener('keypress', (e) =
     }
 });
 
+// Mouse Follower Cursor Effect with Inertia
+function initCursorFollower() {
+    // Skip cursor follower on touch screens or mobile viewports
+    if (window.matchMedia('(max-width: 1024px)').matches || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)) {
+        return;
+    }
+
+    const follower = document.createElement('div');
+    follower.className = 'cursor-follower';
+    follower.id = 'cursorFollower';
+    document.body.appendChild(follower);
+
+    let mouseX = 0, mouseY = 0;
+    let followerX = 0, followerY = 0;
+    let isVisible = false;
+
+    window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        if (!isVisible) {
+            follower.style.display = 'block';
+            isVisible = true;
+        }
+    });
+
+    // Inertia chase animation loop
+    function animate() {
+        const chaseFactor = 0.12;
+        followerX += (mouseX - followerX) * chaseFactor;
+        followerY += (mouseY - followerY) * chaseFactor;
+
+        follower.style.left = `${followerX}px`;
+        follower.style.top = `${followerY}px`;
+
+        requestAnimationFrame(animate);
+    }
+    animate();
+
+    // Expand follower on hovering clickable items
+    const clickables = 'a, button, .product-card, .category-card, .upload-zone, input, select, textarea, [onclick]';
+    document.addEventListener('mouseover', (e) => {
+        if (e.target.closest(clickables)) {
+            follower.classList.add('hovered');
+        }
+    });
+
+    document.addEventListener('mouseout', (e) => {
+        if (e.target.closest(clickables)) {
+            follower.classList.remove('hovered');
+        }
+    });
+}
+
 // --- CORE BOOTSTRAPPER ---
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Languages setups
@@ -1111,4 +1187,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 7. Initial counts sync
     updateCartCounts();
+
+    // 8. Initialize Mouse Follower
+    initCursorFollower();
 });
