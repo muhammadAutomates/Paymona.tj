@@ -1,6 +1,6 @@
 /* PAYMONA - Premium E-Commerce Design System & WOW UI */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
     /* Brand Colors - Red Theme as requested (#C8372D) */
@@ -24,8 +24,8 @@
     --border-glow: rgba(200, 55, 45, 0.15);
     
     /* Typography */
-    --font-heading: 'Outfit', sans-serif;
-    --font-body: 'Inter', sans-serif;
+    --font-heading: 'Outfit', 'Montserrat', sans-serif;
+    --font-body: 'Inter', 'Montserrat', sans-serif;
     
     /* Transitions & Curves */
     --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
