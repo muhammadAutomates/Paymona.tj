@@ -2474,7 +2474,7 @@ textarea.form-input {
 }
 
 /* Interactive elements light up when hovered */
-a:hover, button:hover, .product-card:hover, .category-card:hover, .upload-zone:hover, .search-container:focus-within {
+.btn:hover, .product-card:hover, .category-card:hover, .upload-zone:hover, .search-container:focus-within {
     box-shadow: 0 0 25px rgba(200, 55, 45, 0.35) !important;
     border-color: rgba(200, 55, 45, 0.6) !important;
 }
