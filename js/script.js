@@ -492,35 +492,7 @@ function initParticles(canvasId, dotColor) {
     canvas.dataset.animationId = animationFrameId;
 }
 
-// --- WOW INTRO PAGE PORTAL TRANSITION ---
-function setupWelcomePortal() {
-    const welcome = document.getElementById('welcomeScreen');
-    const enterBtn = document.getElementById('welcomeEnterBtn');
-    
-    if (!welcome) return;
-    
-    // Check if user already entered this session
-    if (sessionStorage.getItem('paymona_entered') === 'true') {
-        welcome.classList.add('fade-out');
-        setTimeout(() => welcome.style.display = 'none', 800);
-        return;
-    }
-    
-    // Init canvas particles inside welcome screen (red particles matching brand accent)
-    initParticles('welcomeCanvas', 'rgba(200, 55, 45, ALPHA)');
-    
-    enterBtn.addEventListener('click', () => {
-        sessionStorage.setItem('paymona_entered', 'true');
-        welcome.classList.add('fade-out');
-        
-        // Log visit statistics on server
-        logVisitorVisit();
-        
-        setTimeout(() => {
-            welcome.style.display = 'none';
-        }, 800);
-    });
-}
+
 
 // Log visit to analytics backend
 async function logVisitorVisit() {
@@ -1185,8 +1157,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Setup Scroll reveal animations and Header scrolled shadows
     handleNavbarScroll();
     
-    // 4. Setup WOW Welcome Portal and dynamic particle graphics
-    setupWelcomePortal();
+    // 4. Log visit statistics on server automatically
+    logVisitorVisit();
     
     // 5. Hero particles render background (subtle red glowing particles)
     initParticles('heroParticles', 'rgba(200, 55, 45, ALPHA)');
