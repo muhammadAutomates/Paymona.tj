@@ -455,7 +455,7 @@ app.put('/api/products/:id', async (req, res) => {
         const id = parseInt(req.params.id);
         
         if (isMongo) {
-            const updated = await ProductModel.findOneAndUpdate({ id }, { $set: req.body }, { new: true });
+            const updated = await ProductModel.findOneAndUpdate({ id }, { $set: req.body }, { returnDocument: 'after' });
             if (!updated) {
                 return res.status(404).json({ error: 'Product not found' });
             }
@@ -647,7 +647,7 @@ app.put('/api/orders/:id/status', async (req, res) => {
         const { status } = req.body;
         
         if (isMongo) {
-            const updated = await OrderModel.findOneAndUpdate({ id }, { $set: { status } }, { new: true });
+            const updated = await OrderModel.findOneAndUpdate({ id }, { $set: { status } }, { returnDocument: 'after' });
             if (!updated) {
                 return res.status(404).json({ error: 'Order not found' });
             }
