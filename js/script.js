@@ -123,6 +123,88 @@ async function loadStoreProducts() {
 let currentFilter = 'all';
 let searchQuery = '';
 
+function initGlobalSearch() {
+    const params = new URLSearchParams(window.location.search);
+    const searchParam = params.get('search');
+    
+    // 1. Pre-fill and expand if active query exists
+    if (searchParam) {
+        searchQuery = searchParam;
+        document.querySelectorAll('.search-input').forEach(input => {
+            input.value = searchParam;
+        });
+        document.querySelectorAll('.search-container').forEach(container => {
+            container.classList.add('active');
+        });
+    }
+    
+    // 2. Bind search inputs events
+    const searchInputs = document.querySelectorAll('.search-input');
+    searchInputs.forEach(input => {
+        input.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            // Sync all search inputs across page
+            searchInputs.forEach(i => { if (i !== input) i.value = searchQuery; });
+            
+            // Trigger dynamic filter if we are on the catalog page
+            if (document.getElementById('productsGrid')) {
+                renderCatalog();
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                window.location.href = `catalog.html?search=${encodeURIComponent(query)}`;
+            }
+        });
+    });
+    
+    // 3. Bind search buttons click events with mobile expand toggle
+    document.querySelectorAll('.search-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const container = btn.parentElement;
+            const input = container.querySelector('.search-input');
+            if (input) {
+                // Mobile viewport toggle behavior
+                if (window.innerWidth <= 640) {
+                    if (!container.classList.contains('active')) {
+                        e.preventDefault();
+                        container.classList.add('active');
+                        setTimeout(() => input.focus(), 150);
+                        return;
+                    }
+                }
+                
+                const query = input.value.trim();
+                
+                // Collapse if empty
+                if (query === '' && window.innerWidth <= 640) {
+                    container.classList.remove('active');
+                    input.blur();
+                    return;
+                }
+                
+                window.location.href = `catalog.html?search=${encodeURIComponent(query)}`;
+            }
+        });
+    });
+    
+    // 4. Close mobile search when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-container')) {
+            document.querySelectorAll('.search-container').forEach(container => {
+                if (container.classList.contains('active')) {
+                    const input = container.querySelector('.search-input');
+                    if (input && input.value.trim() === '') {
+                        container.classList.remove('active');
+                    }
+                }
+            });
+        }
+    });
+}
+
 function initCatalogPage() {
     const catalogGrid = document.getElementById('productsGrid');
     if (!catalogGrid) return;
@@ -130,16 +212,8 @@ function initCatalogPage() {
     // Parse URL parameters
     const params = new URLSearchParams(window.location.search);
     const catParam = params.get('category');
-    const searchParam = params.get('search');
     
     if (catParam) currentFilter = catParam;
-    if (searchParam) {
-        searchQuery = searchParam;
-        // Pre-fill search inputs
-        const globSearch = document.getElementById('globalSearchInput');
-        if (globSearch) globSearch.value = searchParam;
-        document.querySelectorAll('.search-input').forEach(i => i.value = searchParam);
-    }
     
     // Bind Catalog Category Filter buttons
     const filterBtns = document.querySelectorAll('.filter-btn');
@@ -157,71 +231,6 @@ function initCatalogPage() {
             currentFilter = filterVal;
             renderCatalog();
         });
-    });
-    
-    // Bind Search Input dynamic typing and enter key triggers
-    const searchInputs = document.querySelectorAll('.search-input');
-    searchInputs.forEach(input => {
-        input.addEventListener('input', (e) => {
-            searchQuery = e.target.value;
-            // Sync all search inputs across page
-            searchInputs.forEach(i => { if (i !== input) i.value = searchQuery; });
-            
-            // Only trigger catalog render if we are on the catalog page
-            if (document.getElementById('productsGrid')) {
-                renderCatalog();
-            }
-        });
-
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const query = e.target.value.trim();
-                window.location.href = `catalog.html?search=${encodeURIComponent(query)}`;
-            }
-        });
-    });
-
-    // Bind Search Button click redirection with mobile active toggle behavior
-    document.querySelectorAll('.search-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const container = btn.parentElement;
-            const input = container.querySelector('.search-input');
-            if (input) {
-                // If we are on a mobile device and search is not yet active
-                if (window.innerWidth <= 640) {
-                    if (!container.classList.contains('active')) {
-                        e.preventDefault();
-                        container.classList.add('active');
-                        input.focus();
-                        return;
-                    }
-                }
-                
-                const query = input.value.trim();
-                
-                // If user clicked search icon again but search text is empty, collapse it
-                if (query === '' && window.innerWidth <= 640) {
-                    container.classList.remove('active');
-                    return;
-                }
-                
-                window.location.href = `catalog.html?search=${encodeURIComponent(query)}`;
-            }
-        });
-    });
-
-    // Close mobile search when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-container')) {
-            document.querySelectorAll('.search-container').forEach(container => {
-                if (container.classList.contains('active')) {
-                    const input = container.querySelector('.search-input');
-                    if (input && input.value.trim() === '') {
-                        container.classList.remove('active');
-                    }
-                }
-            });
-        }
     });
     
     // Initial Catalog Render
@@ -1148,36 +1157,29 @@ document.getElementById('cartDrawerOverlay')?.addEventListener('click', (e) => {
     if (e.target === document.getElementById('cartDrawerOverlay')) toggleCartDrawer();
 });
 
-// Global Search Handler — only keydown (keypress is deprecated in modern browsers)
-document.getElementById('globalSearchInput')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        const query = e.target.value.trim();
-        if (query) {
-            window.location.href = `catalog.html?search=${encodeURIComponent(query)}`;
-        }
-    }
-});
-
 // --- CORE BOOTSTRAPPER ---
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Languages setups
     setupLanguageSwitcher();
     
-    // 2. Load API products list
+    // 2. Global search setups (runs on all pages)
+    initGlobalSearch();
+    
+    // 3. Load API products list
     loadStoreProducts();
     
-    // 3. Setup Scroll reveal animations and Header scrolled shadows
+    // 4. Setup Scroll reveal animations and Header scrolled shadows
     handleNavbarScroll();
     
-    // 4. Log visit statistics on server automatically
+    // 5. Log visit statistics on server automatically
     logVisitorVisit();
     
-    // 5. Hero particles render background (subtle red glowing particles)
+    // 6. Hero particles render background (subtle red glowing particles)
     initParticles('heroParticles', 'rgba(200, 55, 45, ALPHA)');
     
-    // 6. Start Active Visitors pinger stats
+    // 7. Start Active Visitors pinger stats
     startClientPinger();
     
-    // 7. Initial counts sync
+    // 8. Initial counts sync
     updateCartCounts();
 });
