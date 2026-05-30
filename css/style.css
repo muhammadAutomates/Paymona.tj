@@ -129,104 +129,7 @@ button {
     pointer-events: none;
 }
 
-/* --- WOW INTRO SCREEN --- */
-.welcome-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: var(--bg-dark);
-    z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
-    overflow: hidden;
-}
-
-.welcome-screen.fade-out {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.welcome-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0.3;
-    pointer-events: none;
-}
-
-.welcome-content {
-    position: relative;
-    z-index: 2;
-    text-align: center;
-    padding: 20px;
-    max-width: 600px;
-}
-
-.welcome-logo {
-    font-family: var(--font-heading);
-    font-size: 5.5rem;
-    font-weight: 900;
-    letter-spacing: -2px;
-    background: linear-gradient(135deg, #ff7e75 0%, var(--brand-red) 60%, var(--brand-red-hover) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 8px;
-    animation: welcomeGlow 3s ease-in-out infinite alternate;
-}
-
-.welcome-tagline {
-    font-size: 1.25rem;
-    color: rgba(255,255,255,0.7);
-    margin-bottom: 40px;
-    font-weight: 300;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-}
-
-.welcome-enter-btn {
-    background: var(--brand-red);
-    color: white;
-    font-family: var(--font-heading);
-    font-weight: 700;
-    font-size: 1.1rem;
-    padding: 16px 44px;
-    border-radius: var(--radius-full);
-    border: 1px solid rgba(255,255,255,0.1);
-    box-shadow: var(--shadow-brand);
-    transition: var(--transition-bounce);
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.welcome-enter-btn:hover {
-    background: white;
-    color: var(--brand-red);
-    transform: scale(1.05) translateY(-2px);
-    box-shadow: 0 15px 35px rgba(255,255,255,0.1);
-}
-
-.welcome-enter-btn i {
-    font-size: 1.25rem;
-    transition: transform 0.3s ease;
-}
-.welcome-enter-btn:hover i {
-    transform: translateX(5px);
-}
-
-@keyframes welcomeGlow {
-    0% { filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.1)); }
-    100% { filter: drop-shadow(0 0 35px rgba(200, 55, 45, 0.4)); }
-}
+/* Welcome screen removed — code cleaned up */
 
 /* --- PREMIUM BUTTONS --- */
 .btn {
@@ -2441,26 +2344,25 @@ textarea.form-input {
 /* Advanced Scroll Reveal Animation System */
 .scroll-reveal {
     opacity: 0;
-    filter: blur(8px);
-    transform: translateY(40px); /* Default slide up direction */
-    transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 1s cubic-bezier(0.16, 1, 0.3, 1),
-                filter 1s cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: transform, opacity, filter;
+    /* Removed blur() — it causes GPU lag on mobile during paint */
+    transform: translateY(30px); /* Default slide up */
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
 }
 
 /* Directional reveal variables */
 .scroll-reveal.reveal-slide-down {
-    transform: translateY(-50px);
+    transform: translateY(-30px);
 }
 .scroll-reveal.reveal-slide-left {
-    transform: translateX(-50px);
+    transform: translateX(-40px);
 }
 .scroll-reveal.reveal-slide-right {
-    transform: translateX(50px);
+    transform: translateX(40px);
 }
 .scroll-reveal.reveal-scale {
-    transform: scale(0.9);
+    transform: scale(0.92);
 }
 .scroll-reveal.reveal-fade {
     transform: none;
@@ -2470,13 +2372,19 @@ textarea.form-input {
 .scroll-reveal.active {
     opacity: 1;
     transform: translate(0) scale(1);
-    filter: blur(0);
 }
 
-/* Interactive elements light up when hovered */
-.btn:hover, .product-card:hover, .category-card:hover, .upload-zone:hover, .search-container:focus-within {
-    box-shadow: 0 0 25px rgba(200, 55, 45, 0.35) !important;
-    border-color: rgba(200, 55, 45, 0.6) !important;
+/* Interactive hover effects — no !important conflicts */
+.btn-primary:hover {
+    box-shadow: var(--shadow-brand);
+}
+.product-card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-glow);
+}
+.category-card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--brand-red);
 }
 
 /* ==========================================
@@ -2505,9 +2413,10 @@ textarea.form-input {
         margin-top: 20px;
     }
     
+    /* Fix: don't use !important — override perspective transform but keep float animation */
     .hero-glass-card {
-        transform: none !important;
-        animation: cardFloat 6s ease-in-out infinite alternate;
+        transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+        animation: cardFloatSimple 6s ease-in-out infinite alternate;
         margin: 0 auto;
     }
     
@@ -2517,6 +2426,12 @@ textarea.form-input {
     }
 }
 
+/* Simple float for tablet — no 3D perspective distortion */
+@keyframes cardFloatSimple {
+    0%   { transform: translateY(0px); }
+    100% { transform: translateY(-12px); }
+}
+
 /* Tablets & Mobile Devices (max-width: 768px) */
 @media (max-width: 768px) {
     .container {
@@ -2524,7 +2439,7 @@ textarea.form-input {
     }
     
     .hero {
-        padding-top: 110px;
+        padding-top: 100px;
         padding-bottom: 50px;
         min-height: auto;
     }
@@ -2558,13 +2473,36 @@ textarea.form-input {
     .detail-price {
         font-size: 1.8rem;
     }
+
+    /* Section spacing */
+    .categories-section,
+    .products-section {
+        padding: 60px 0;
+    }
+
+    .section-title {
+        font-size: 2rem;
+    }
+
+    /* Catalog page header */
+    .page-header {
+        padding: 100px 0 50px !important;
+    }
+    .page-title {
+        font-size: 2.5rem !important;
+    }
+
+    /* Footer adjustments */
+    .footer {
+        padding: 60px 0 30px;
+    }
 }
 
 /* Mobile Portrait Devices (max-width: 640px) */
 @media (max-width: 640px) {
-    /* Navbar adjustments for fitting all actions */
+    /* Navbar: compact layout */
     .nav-container {
-        padding: 12px 16px;
+        padding: 10px 14px;
     }
     
     .nav-logo .logo-text {
@@ -2573,48 +2511,79 @@ textarea.form-input {
     }
     
     .nav-logo .logo-icon {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
     }
     
     .nav-actions {
-        gap: 8px;
+        gap: 6px;
     }
     
+    /* Language switcher: show only text, no caret on very small screens */
     .custom-lang-switcher .current-lang {
-        padding: 6px 12px;
+        padding: 6px 10px;
         font-size: 0.75rem;
-        gap: 4px;
+        gap: 3px;
+    }
+    
+    /* Search bar: compact on mobile */
+    .search-container {
+        flex: 1;
+        max-width: 120px;
     }
     
     .search-input {
-        width: 70px;
-        padding: 6px 6px 6px 12px;
+        width: 60px;
+        padding: 6px 4px 6px 10px;
+        font-size: 0.8rem;
     }
     
     .search-input:focus {
-        width: 100px;
+        width: 85px;
     }
     
     .icon-btn {
-        width: 38px;
-        height: 38px;
-        font-size: 1.15rem;
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
     }
     
     .cart-count {
         width: 16px;
         height: 16px;
         font-size: 0.6rem;
-        top: 0px;
-        right: 0px;
+        top: 0;
+        right: 0;
     }
     
-    /* Hero Title scale down */
+    /* Hero */
+    .hero {
+        padding-top: 90px;
+        padding-bottom: 40px;
+    }
+
     .hero-title {
-        font-size: 2.2rem;
+        font-size: 2.1rem;
+        letter-spacing: -1px;
     }
     
+    .hero-subtitle {
+        font-size: 0.95rem;
+    }
+
+    .delivery-badge {
+        font-size: 0.78rem;
+        padding: 7px 16px;
+    }
+
+    .hero-glass-card {
+        max-width: 300px;
+    }
+
+    .hero-glass-card img {
+        height: 200px;
+    }
+
     .hero-buttons {
         flex-direction: column;
         width: 100%;
@@ -2625,12 +2594,38 @@ textarea.form-input {
     .hero-buttons .btn {
         width: 100%;
         max-width: 280px;
+        padding: 13px 24px;
+        font-size: 0.9rem;
     }
     
-    /* Standard 2 Columns Products Grid on Mobile */
+    /* Catalog page header */
+    .page-header {
+        padding: 90px 0 40px !important;
+    }
+    .page-title {
+        font-size: 2rem !important;
+        letter-spacing: -0.5px !important;
+    }
+
+    /* Section titles */
+    .section-title {
+        font-size: 1.8rem;
+    }
+    .section-subtitle {
+        font-size: 0.9rem;
+    }
+    .section-title-wrap {
+        margin-bottom: 30px;
+    }
+    .categories-section,
+    .products-section {
+        padding: 50px 0;
+    }
+
+    /* 2 Column products grid */
     .product-grid {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 12px !important;
+        gap: 10px !important;
     }
     
     .product-card {
@@ -2648,40 +2643,53 @@ textarea.form-input {
     .product-image-wrap {
         height: 130px;
         margin-bottom: 10px;
-        padding: 8px;
     }
     
     .product-name {
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         margin-bottom: 6px;
         line-height: 1.3;
     }
+
+    .product-category {
+        font-size: 0.7rem;
+    }
     
     .product-price {
-        font-size: 1.05rem;
+        font-size: 1rem;
     }
     
     .old-price {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
     }
     
     .add-to-cart-btn {
         width: 32px;
         height: 32px;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
+    }
+
+    /* Filter buttons */
+    .category-filters {
+        gap: 8px;
+        margin-bottom: 24px;
+    }
+    .filter-btn {
+        padding: 8px 16px;
+        font-size: 0.82rem;
     }
     
-    /* Footer responsiveness */
+    /* Footer */
     .footer {
-        padding: 60px 0 30px;
+        padding: 50px 0 25px;
     }
     
     .footer-grid {
         grid-template-columns: 1fr;
-        gap: 30px;
+        gap: 28px;
         text-align: center;
-        padding-bottom: 30px;
-        margin-bottom: 30px;
+        padding-bottom: 28px;
+        margin-bottom: 28px;
     }
     
     .footer-desc {
@@ -2696,11 +2704,80 @@ textarea.form-input {
         justify-content: center;
         font-size: 0.9rem;
     }
+
+    /* Detail Modal on mobile */
+    .detail-modal {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .detail-content {
+        height: 97vh;
+        max-height: none;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .detail-body {
+        padding: 16px;
+        gap: 20px;
+    }
+
+    .detail-title {
+        font-size: 1.3rem;
+    }
+
+    .detail-price {
+        font-size: 1.6rem;
+    }
+
+    .detail-main-img-wrap {
+        height: 220px;
+    }
+
+    /* Cart drawer full width on mobile */
+    .cart-drawer {
+        max-width: 100vw;
+    }
 }
 
-/* Micro-adjustments for small mobile screens */
-@media (max-width: 480px) {
+/* Very small screens (≤ 400px) */
+@media (max-width: 400px) {
+    .nav-logo .logo-text {
+        font-size: 1.1rem;
+    }
+
+    /* Hide search text, keep only icon */
+    .search-container {
+        max-width: 40px;
+        overflow: hidden;
+        transition: max-width 0.3s ease;
+    }
+    .search-container:focus-within {
+        max-width: 120px;
+    }
+    .search-input {
+        width: 0;
+        padding: 6px 0;
+    }
+    .search-input:focus {
+        width: 70px;
+        padding: 6px 4px;
+    }
+
+    .hero-title {
+        font-size: 1.8rem;
+    }
+
+    .product-grid {
+        gap: 8px !important;
+    }
+
+    .product-image-wrap {
+        height: 110px;
+    }
+
     .cart-items-list, .cart-header, .cart-footer {
-        padding: 16px;
+        padding: 14px;
     }
 }

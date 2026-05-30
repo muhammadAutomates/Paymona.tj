@@ -497,6 +497,15 @@ function initParticles(canvasId, dotColor) {
     }
     animate();
     
+    // Pause animation when tab is hidden (Page Visibility API)
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            cancelAnimationFrame(animationFrameId);
+        } else {
+            animate();
+        }
+    });
+    
     // Store handle to cancel if needed
     canvas.dataset.animationId = animationFrameId;
 }
@@ -513,27 +522,37 @@ async function logVisitorVisit() {
 }
 
 // --- SCROLL REVEALS & NAVBAR ---
+
+// Global shared observer to prevent accumulation
+let _scrollObserver = null;
+
 function initScrollReveal() {
-    const reveals = document.querySelectorAll('.scroll-reveal');
+    const reveals = document.querySelectorAll('.scroll-reveal:not(.active)');
+    if (reveals.length === 0) return;
     
     // Auto-stagger delay for elements inside grids/flex layouts
     const containers = document.querySelectorAll('.product-grid, .categories-grid, .hero-buttons, #popularProductsGrid');
     containers.forEach(container => {
         const items = container.querySelectorAll('.scroll-reveal');
         items.forEach((item, idx) => {
-            item.style.transitionDelay = `${idx * 0.08}s`;
+            item.style.transitionDelay = `${idx * 0.07}s`;
         });
     });
     
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('active');
-            }
-        });
-    }, { threshold: 0.05 });
+    // Reuse the existing observer or create one
+    if (!_scrollObserver) {
+        _scrollObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // Stop watching once animated in — prevents repeat triggers
+                    _scrollObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
+    }
     
-    reveals.forEach(r => observer.observe(r));
+    reveals.forEach(r => _scrollObserver.observe(r));
 }
 
 function handleNavbarScroll() {
@@ -736,8 +755,11 @@ async function openProductDetailModal(id) {
     // Load reviews list
     loadProductReviews(p.id);
     
-    // Show modal
+    // Show modal with scroll reset
     modal.classList.add('active');
+    // Reset modal body scroll to top
+    const detailBody = modal.querySelector('.detail-body');
+    if (detailBody) detailBody.scrollTop = 0;
 }
 
 // Reset modal active selections
@@ -1092,8 +1114,8 @@ document.getElementById('cartDrawerOverlay')?.addEventListener('click', (e) => {
     if (e.target === document.getElementById('cartDrawerOverlay')) toggleCartDrawer();
 });
 
-// Global Search Filtering Handler redirects to Catalog if search submitted
-document.getElementById('globalSearchInput')?.addEventListener('keypress', (e) => {
+// Global Search Handler — only keydown (keypress is deprecated in modern browsers)
+document.getElementById('globalSearchInput')?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         const query = e.target.value.trim();
         if (query) {
