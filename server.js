@@ -641,6 +641,34 @@ app.get('/api/orders', async (req, res) => {
     }
 });
 
+app.put('/api/orders/:id/status', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { status } = req.body;
+        
+        if (isMongo) {
+            const updated = await OrderModel.findOneAndUpdate({ id }, { $set: { status } }, { new: true });
+            if (!updated) {
+                return res.status(404).json({ error: 'Order not found' });
+            }
+            const allOrders = await OrderModel.find().sort({ id: -1 });
+            writeJSON(ORDERS_PATH, allOrders);
+            res.json(updated);
+        } else {
+            const orders = readJSON(ORDERS_PATH);
+            const index = orders.findIndex(o => o.id === id);
+            if (index === -1) {
+                return res.status(404).json({ error: 'Order not found' });
+            }
+            orders[index].status = status;
+            writeJSON(ORDERS_PATH, orders);
+            res.json(orders[index]);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.post('/api/orders', async (req, res) => {
     try {
         const orderData = req.body;
