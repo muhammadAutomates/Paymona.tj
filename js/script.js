@@ -181,16 +181,47 @@ function initCatalogPage() {
         });
     });
 
-    // Bind Search Button click redirection
+    // Bind Search Button click redirection with mobile active toggle behavior
     document.querySelectorAll('.search-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
             const container = btn.parentElement;
             const input = container.querySelector('.search-input');
             if (input) {
+                // If we are on a mobile device and search is not yet active
+                if (window.innerWidth <= 640) {
+                    if (!container.classList.contains('active')) {
+                        e.preventDefault();
+                        container.classList.add('active');
+                        input.focus();
+                        return;
+                    }
+                }
+                
                 const query = input.value.trim();
+                
+                // If user clicked search icon again but search text is empty, collapse it
+                if (query === '' && window.innerWidth <= 640) {
+                    container.classList.remove('active');
+                    return;
+                }
+                
                 window.location.href = `catalog.html?search=${encodeURIComponent(query)}`;
             }
         });
+    });
+
+    // Close mobile search when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-container')) {
+            document.querySelectorAll('.search-container').forEach(container => {
+                if (container.classList.contains('active')) {
+                    const input = container.querySelector('.search-input');
+                    if (input && input.value.trim() === '') {
+                        container.classList.remove('active');
+                    }
+                }
+            });
+        }
     });
     
     // Initial Catalog Render
