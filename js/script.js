@@ -631,11 +631,14 @@ async function openProductDetailModal(id) {
     // Main image
     mediaList.push({ type: 'image', url: p.image });
     
-    // Extra photos (mock or add them)
-    if (p.extraImages && p.extraImages.length > 0) {
+    // Extra photos from gallery (new field: images)
+    if (p.images && p.images.length > 0) {
+        p.images.forEach(img => { if (img) mediaList.push({ type: 'image', url: img }); });
+    } else if (p.extraImages && p.extraImages.length > 0) {
+        // Legacy fallback
         p.extraImages.forEach(img => mediaList.push({ type: 'image', url: img }));
     }
-    
+
     // Videos support
     if (p.videoUrl) {
         mediaList.push({ type: 'video', url: p.videoUrl });

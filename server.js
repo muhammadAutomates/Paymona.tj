@@ -5,7 +5,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const multer = require('multer');
 
-// Configure multer for product images upload
+// Configure multer for product media upload (images + video)
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const dest = path.join(__dirname, 'assets', 'products');
@@ -20,7 +20,39 @@ const storage = multer.diskStorage({
         cb(null, uniqueName);
     }
 });
-const upload = multer({ storage: storage });
+
+// File filter: allow images and video
+const mediaFilter = function (req, file, cb) {
+    if (file.fieldname === 'photos') {
+        // Accept images only
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed for photos'), false);
+        }
+    } else if (file.fieldname === 'video') {
+        // Accept video files only
+        if (file.mimetype.startsWith('video/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only video files are allowed'), false);
+        }
+    } else {
+        cb(null, true);
+    }
+};
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB max per file
+    fileFilter: mediaFilter
+});
+
+// Multi-file upload handler: up to 4 photos + 1 video
+const uploadMedia = upload.fields([
+    { name: 'photos', maxCount: 4 },
+    { name: 'video', maxCount: 1 }
+]);
 
 const app = express();
 const PORT = 3000;
@@ -88,9 +120,10 @@ const ProductSchema = new mongoose.Schema({
     category: String,
     price: Number,
     oldPrice: Number,
-    image: String,
+    image: String,          // Main/cover photo
+    images: [String],       // Additional gallery photos (up to 3 extra)
     badge: String,
-    videoUrl: String,
+    videoUrl: String,       // Uploaded or external video URL
     colors: [String],
     sizes: [String],
     description: String
@@ -262,7 +295,7 @@ initializeMockTraffic();
 
 // --- API ENDPOINTS ---
 
-// File Upload API
+// Single file upload (legacy endpoint for backward compat)
 app.post('/api/upload', upload.single('photo'), (req, res) => {
     try {
         if (!req.file) {
@@ -273,6 +306,29 @@ app.post('/api/upload', upload.single('photo'), (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+});
+
+// Multi-media upload: up to 4 photos + 1 video
+app.post('/api/upload-media', (req, res) => {
+    uploadMedia(req, res, function(err) {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        
+        const result = { success: true, photos: [], video: null };
+        
+        // Process uploaded photos
+        if (req.files && req.files['photos']) {
+            result.photos = req.files['photos'].map(f => `assets/products/${f.filename}`);
+        }
+        
+        // Process uploaded video
+        if (req.files && req.files['video'] && req.files['video'].length > 0) {
+            result.video = `assets/products/${req.files['video'][0].filename}`;
+        }
+        
+        res.json(result);
+    });
 });
 
 // Settings APIs
