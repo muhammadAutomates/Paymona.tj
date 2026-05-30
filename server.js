@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const heicConvert = require('heic-convert');
 
 // Configure multer for product media upload (images + video)
 const storage = multer.diskStorage({
@@ -295,14 +296,52 @@ initializeMockTraffic();
 
 // --- API ENDPOINTS ---
 
+// Helper to convert uploaded files to Base64 data URLs (and handle HEIC format conversion if needed)
+async function convertFileToBase64(absolutePath, originalName, mimeType) {
+    try {
+        let buffer = fs.readFileSync(absolutePath);
+        let finalMimeType = mimeType;
+        const ext = path.extname(originalName).toLowerCase();
+        
+        // Auto convert HEIC/HEIF images to JPEG so browsers can display them
+        if (ext === '.heic' || ext === '.heif' || mimeType.includes('heic') || mimeType.includes('heif')) {
+            try {
+                buffer = await heicConvert({
+                    buffer: buffer,
+                    format: 'JPEG',
+                    quality: 0.75
+                });
+                finalMimeType = 'image/jpeg';
+            } catch (convErr) {
+                console.error('HEIC conversion failed:', convErr);
+            }
+        }
+        
+        const base64Data = `data:${finalMimeType};base64,${buffer.toString('base64')}`;
+        
+        // Delete temporary file from disk immediately
+        try {
+            fs.unlinkSync(absolutePath);
+        } catch (unLinkErr) {
+            console.error('Failed to delete temp file:', unLinkErr);
+        }
+        
+        return base64Data;
+    } catch (err) {
+        console.error('Failed to process image buffer:', err);
+        throw err;
+    }
+}
+
 // Single file upload (legacy endpoint for backward compat)
-app.post('/api/upload', upload.single('photo'), (req, res) => {
+app.post('/api/upload', upload.single('photo'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'Файл не загружен' });
         }
-        const relativePath = `assets/products/${req.file.filename}`;
-        res.json({ success: true, imagePath: relativePath });
+        const absolutePath = path.join(__dirname, 'assets', 'products', req.file.filename);
+        const base64Data = await convertFileToBase64(absolutePath, req.file.originalname, req.file.mimetype);
+        res.json({ success: true, imagePath: base64Data });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -310,7 +349,7 @@ app.post('/api/upload', upload.single('photo'), (req, res) => {
 
 // Multi-media upload: up to 4 photos + 1 video
 app.post('/api/upload-media', (req, res) => {
-    uploadMedia(req, res, function(err) {
+    uploadMedia(req, res, async function(err) {
         if (err) {
             return res.status(400).json({ error: err.message });
         }
@@ -319,10 +358,19 @@ app.post('/api/upload-media', (req, res) => {
         
         // Process uploaded photos
         if (req.files && req.files['photos']) {
-            result.photos = req.files['photos'].map(f => `assets/products/${f.filename}`);
+            for (const f of req.files['photos']) {
+                const absolutePath = path.join(__dirname, 'assets', 'products', f.filename);
+                try {
+                    const base64Data = await convertFileToBase64(absolutePath, f.originalname, f.mimetype);
+                    result.photos.push(base64Data);
+                } catch (processErr) {
+                    // Fallback to local path if conversion fails
+                    result.photos.push(`assets/products/${f.filename}`);
+                }
+            }
         }
         
-        // Process uploaded video
+        // Process uploaded video (remains on disk as before)
         if (req.files && req.files['video'] && req.files['video'].length > 0) {
             result.video = `assets/products/${req.files['video'][0].filename}`;
         }
