@@ -1211,8 +1211,19 @@
                     e.preventDefault();
                     slot.classList.remove('dragover');
                     const files = e.dataTransfer.files;
-                    if (files.length > 0 && files[0].type.startsWith('image/')) {
-                        uploadPhoto(files[0], slotIndex, slot, previewImg, removeBtn, spinner);
+                    if (files.length > 0) {
+                        const f = files[0];
+                        const nameLower = f.name.toLowerCase();
+                        const isImage = f.type.startsWith('image/') || 
+                                        nameLower.endsWith('.heic') || 
+                                        nameLower.endsWith('.heif') || 
+                                        nameLower.endsWith('.jpg') || 
+                                        nameLower.endsWith('.jpeg') || 
+                                        nameLower.endsWith('.png') || 
+                                        nameLower.endsWith('.webp');
+                        if (isImage) {
+                            uploadPhoto(f, slotIndex, slot, previewImg, removeBtn, spinner);
+                        }
                     }
                 });
                 
@@ -1272,8 +1283,17 @@
         
         // Upload a photo to server for a specific slot
         async function uploadPhoto(file, slotIndex, slotEl, previewImg, removeBtn, spinner) {
-            if (!file.type.startsWith('image/')) {
-                alert('Выберите файл изображения (JPG, PNG, WEBP)');
+            const nameLower = file.name.toLowerCase();
+            const isImage = file.type.startsWith('image/') || 
+                            nameLower.endsWith('.heic') || 
+                            nameLower.endsWith('.heif') || 
+                            nameLower.endsWith('.jpg') || 
+                            nameLower.endsWith('.jpeg') || 
+                            nameLower.endsWith('.png') || 
+                            nameLower.endsWith('.webp');
+            
+            if (!isImage) {
+                alert('Пожалуйста, выберите файл изображения (JPG, PNG, WEBP, HEIC)!');
                 return;
             }
             
