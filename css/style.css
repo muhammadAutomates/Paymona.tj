@@ -2321,7 +2321,7 @@ textarea.form-input {
     background: rgba(9, 13, 22, 0.4);
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
-    z-index: 2000;
+    z-index: 10000;
     opacity: 0;
     pointer-events: none;
     transition: var(--transition-smooth);
@@ -3057,17 +3057,23 @@ textarea.form-input {
     }
     
     /* Responsive Modals on Mobile */
+    .admin-modal-overlay {
+        align-items: flex-start !important;
+        overflow-y: auto !important;
+        padding: 20px 10px 80px 10px !important;
+    }
+    
     .admin-modal {
         max-width: 95vw !important;
-        max-height: 90vh !important;
+        max-height: none !important;
         border-radius: var(--radius-lg) !important;
-        margin: 10px !important;
+        margin: 20px auto !important;
     }
     
     .admin-modal-body {
         padding: 16px !important;
-        max-height: calc(90vh - 120px) !important;
-        overflow-y: auto !important;
+        max-height: none !important;
+        overflow-y: visible !important;
     }
     
     .admin-form-grid {
