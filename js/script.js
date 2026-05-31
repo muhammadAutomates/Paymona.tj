@@ -645,7 +645,16 @@ async function openProductDetailModal(id) {
     // Fill text properties
     document.getElementById('detailTitle').textContent = p.name;
     document.getElementById('detailPrice').textContent = `${p.price} c.`;
-    document.getElementById('detailDesc').textContent = p.description || 'Изысканный выбор для вашего дома. Высокая практичность и гарантированная долговечность. / Интихоби олӣ барои хонаи шумо. Сифати боэътимод ва пойдории кафолатдодашуда.';
+    
+    // Choose description based on language
+    const lang = getCurrentLang();
+    let descText = '';
+    if (lang === 'tj') {
+        descText = p.descriptionTj || p.description; // Fallback to Russian if TJ is empty
+    } else {
+        descText = p.description;
+    }
+    document.getElementById('detailDesc').textContent = descText || (lang === 'tj' ? 'Интихоби олӣ барои хонаи шумо. Сифати боэътимод ва пойдории кафолатдодашуда.' : 'Изысканный выбор для вашего дома. Высокая практичность и гарантированная долговечность.');
     
     // Pricing discounts
     const oldPriceEl = document.getElementById('detailOldPrice');

@@ -251,6 +251,10 @@
                         <i class="ph ph-arrow-square-out"></i>
                         Открыть магазин
                     </a>
+                    <button id="adminNavbarLogoutBtn" class="admin-nav-btn" style="background: none; border: none; cursor: pointer; color: var(--brand-red); font-family: inherit; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="ph ph-sign-out"></i>
+                        Выйти
+                    </button>
                     
                     <div class="admin-profile">
                         <div class="admin-avatar">A</div>
@@ -641,8 +645,12 @@
                     </div>
 
                     <div class="admin-form-group col-span-2">
-                        <label class="admin-form-label">Описание товара</label>
+                        <label class="admin-form-label">Описание товара (на русском)</label>
                         <textarea id="formProductDescription" class="admin-form-input" placeholder="Подробная информация о товаре, характеристиках..."></textarea>
+                    </div>
+                    <div class="admin-form-group col-span-2">
+                        <label class="admin-form-label">Описание товара (на таджикском)</label>
+                        <textarea id="formProductDescriptionTj" class="admin-form-input" placeholder="Маълумоти муфассал дар бораи маҳсулот, хусусиятҳо..."></textarea>
                     </div>
                 </div>
                 <div class="admin-modal-footer">
@@ -714,10 +722,12 @@
         });
 
         // Logout
-        document.getElementById('adminLogoutBtn').addEventListener('click', () => {
+        const handleLogout = () => {
             sessionStorage.removeItem('paymona_admin_token');
             window.location.reload();
-        });
+        };
+        document.getElementById('adminLogoutBtn')?.addEventListener('click', handleLogout);
+        document.getElementById('adminNavbarLogoutBtn')?.addEventListener('click', handleLogout);
 
         // --- DASHBOARD CONTROLLERS ---
         let adminProducts = [];
@@ -1134,6 +1144,7 @@
             document.getElementById('formProductPrice').value = p.price;
             document.getElementById('formProductOldPrice').value = p.oldPrice || '';
             document.getElementById('formProductDescription').value = p.description || '';
+            document.getElementById('formProductDescriptionTj').value = p.descriptionTj || '';
             
             formColorTags = p.colors ? [...p.colors] : [];
             formSizeTags = p.sizes ? [...p.sizes] : [];
@@ -1481,6 +1492,7 @@
             const image = document.getElementById('formProductImage').value.trim();
             const videoUrl = document.getElementById('formProductVideo').value.trim();
             const description = document.getElementById('formProductDescription').value.trim();
+            const descriptionTj = document.getElementById('formProductDescriptionTj').value.trim();
             
             // Parse extra images array
             let extraImages = [];
@@ -1497,7 +1509,7 @@
             const payload = {
                 name, category, badge, price, oldPrice, 
                 image, images: extraImages,
-                videoUrl, description,
+                videoUrl, description, descriptionTj,
                 colors: formColorTags,
                 sizes: formSizeTags
             };

@@ -127,7 +127,8 @@ const ProductSchema = new mongoose.Schema({
     videoUrl: String,       // Uploaded or external video URL
     colors: [String],
     sizes: [String],
-    description: String
+    description: String,
+    descriptionTj: String
 });
 
 const CategorySchema = new mongoose.Schema({
@@ -466,6 +467,7 @@ app.post('/api/products', async (req, res) => {
         if (!newProduct.colors) newProduct.colors = [];
         if (!newProduct.sizes) newProduct.sizes = [];
         if (!newProduct.description) newProduct.description = '';
+        if (!newProduct.descriptionTj) newProduct.descriptionTj = '';
         if (!newProduct.videoUrl) newProduct.videoUrl = '';
         if (!newProduct.badge) newProduct.badge = null;
         
