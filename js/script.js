@@ -632,6 +632,93 @@ async function sendPing() {
     }
 }
 
+// Map color name to hexadecimal code for storefront product badges
+function resolveColorHex(colorName) {
+    if (!colorName) return '#E2E8F0';
+    const name = colorName.toLowerCase().trim().replace(/ё/g, 'е');
+    
+    // 1. Specific phrase overrides/combination matches
+    if (name.includes('салатов') || name.includes('lime') || name.includes('light green') || name.includes('сабзи равшан') || (name.includes('светло') && name.includes('зелен'))) {
+        return '#86EFAC';
+    }
+    if (name.includes('темно-зелен') || name.includes('тёмно-зелен') || name.includes('темно зелен') || name.includes('dark green') || name.includes('сабзи тира')) {
+        return '#14532D';
+    }
+    if (name.includes('темно-син') || name.includes('тёмно-син') || name.includes('темно син') || name.includes('dark blue') || name.includes('navy') || name.includes('кабуди тира')) {
+        return '#1E3A8A';
+    }
+    if (name.includes('светло-син') || name.includes('светло син') || name.includes('light blue') || name.includes('осмонӣ') || name.includes('осмони')) {
+        return '#38BDF8';
+    }
+    if (name.includes('золот') || name.includes('gold') || name.includes('тило')) {
+        return '#F59E0B';
+    }
+    if (name.includes('серебр') || name.includes('silver') || name.includes('нукра')) {
+        return '#CBD5E1';
+    }
+    if (name.includes('графит') || name.includes('graphite')) {
+        return '#374151';
+    }
+
+    // 2. Keyword checks
+    if (name.includes('бел') || name.includes('white') || name.includes('сафед')) {
+        return '#FFFFFF';
+    }
+    if (name.includes('черн') || name.includes('black') || name.includes('сиех') || name.includes('сиёх')) {
+        return '#111827';
+    }
+    if (name.includes('красн') || name.includes('red') || name.includes('сурх')) {
+        return '#C8372D';
+    }
+    if (name.includes('бордо') || name.includes('maroon') || name.includes('вишн')) {
+        return '#800020';
+    }
+    if (name.includes('син') || name.includes('blue') || name.includes('кабуд')) {
+        return '#2563EB';
+    }
+    if (name.includes('зелен') || name.includes('green') || name.includes('сабз') || name.includes('хаки')) {
+        return '#16A34A';
+    }
+    if (name.includes('желт') || name.includes('yellow') || name.includes('зард') || name.includes('лимон')) {
+        return '#FACC15';
+    }
+    if (name.includes('оранж') || name.includes('orange') || name.includes('норинч')) {
+        return '#F97316';
+    }
+    if (name.includes('розов') || name.includes('pink') || name.includes('гулоб')) {
+        return '#F472B6';
+    }
+    if (name.includes('фиолет') || name.includes('violet') || name.includes('purple') || name.includes('бунафш')) {
+        return '#A855F7';
+    }
+    if (name.includes('коричн') || name.includes('brown') || name.includes('кахва') || name.includes('шоколад')) {
+        return '#78350F';
+    }
+    if (name.includes('бежев') || name.includes('beige') || name.includes('беж')) {
+        return '#F5F5DC';
+    }
+    if (name.includes('бирюз') || name.includes('turquoise')) {
+        return '#2DD4BF';
+    }
+    if (name.includes('серый') || name.includes('серая') || name.includes('серое') || name.includes('grey') || name.includes('gray') || name.includes('хокистар')) {
+        return '#94A3B8';
+    }
+
+    // Direct exact matches dictionary fallback
+    const directMap = {
+        'черный': '#111827', 'black': '#111827', 'сиёҳ': '#111827',
+        'белый': '#FFFFFF', 'white': '#FFFFFF', 'сафед': '#FFFFFF',
+        'красный': '#C8372D', 'red': '#C8372D', 'сурх': '#C8372D',
+        'синий': '#2563EB', 'blue': '#2563EB', 'кабуд': '#2563EB',
+        'зеленый': '#16A34A', 'green': '#16A34A', 'сабз': '#16A34A',
+        'серый': '#94A3B8', 'grey': '#94A3B8', 'хокистарӣ': '#94A3B8',
+        'серебро': '#CBD5E1', 'silver': '#CBD5E1',
+        'золото': '#F59E0B', 'gold': '#F59E0B', 'тилоӣ': '#F59E0B'
+    };
+    
+    return directMap[name] || '#E2E8F0';
+}
+
 // --- PRODUCT DETAILS MODAL OPERATIONS ---
 async function openProductDetailModal(id) {
     const modal = document.getElementById('detailModal');
@@ -773,19 +860,7 @@ async function openProductDetailModal(id) {
             const btn = document.createElement('button');
             btn.className = 'color-badge';
             
-            // Map common color names to hex for visual chips
-            const colorMap = {
-                'черный': '#111827', 'black': '#111827', 'сиёҳ': '#111827',
-                'белый': '#FFFFFF', 'white': '#FFFFFF', 'сафед': '#FFFFFF',
-                'красный': '#C8372D', 'red': '#C8372D', 'сурх': '#C8372D',
-                'синий': '#2563EB', 'blue': '#2563EB', 'кабуд': '#2563EB',
-                'зеленый': '#16A34A', 'green': '#16A34A', 'сабз': '#16A34A',
-                'серый': '#94A3B8', 'grey': '#94A3B8', 'хокистарӣ': '#94A3B8',
-                'серебро': '#CBD5E1', 'silver': '#CBD5E1',
-                'золото': '#F59E0B', 'gold': '#F59E0B', 'тилоӣ': '#F59E0B'
-            };
-            
-            const colorHex = colorMap[color.toLowerCase()] || '#E2E8F0';
+            const colorHex = resolveColorHex(color);
             btn.style.backgroundColor = colorHex;
             btn.setAttribute('data-color-name', color);
             btn.setAttribute('title', color);
