@@ -660,8 +660,16 @@ async function openProductDetailModal(id) {
     document.getElementById('detailQtyNumber').textContent = '1';
     
     // Media gallery render (Images & Videos)
-    const galleryWrap = document.getElementById('detailMainImgWrap');
+    let galleryWrap = document.getElementById('detailMainImgWrap');
     const thumbsWrap = document.getElementById('detailThumbs');
+    
+    // Clone galleryWrap to clean up previous event listeners
+    if (galleryWrap) {
+        const newGalleryWrap = galleryWrap.cloneNode(true);
+        galleryWrap.parentNode.replaceChild(newGalleryWrap, galleryWrap);
+        galleryWrap = newGalleryWrap;
+    }
+    
     galleryWrap.innerHTML = '';
     thumbsWrap.innerHTML = '';
     
@@ -684,8 +692,12 @@ async function openProductDetailModal(id) {
         mediaList.push({ type: 'video', url: p.videoUrl });
     }
     
+    // Tracks current active media item for fullscreen display
+    let currentActiveMedia = mediaList[0];
+    
     // Render current active media content
     function renderMainMedia(item) {
+        currentActiveMedia = item;
         galleryWrap.innerHTML = '';
         if (item.type === 'video') {
             // Check if youtube link
@@ -696,19 +708,27 @@ async function openProductDetailModal(id) {
                 } else {
                     yId = item.url.split('/').pop();
                 }
-                galleryWrap.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${yId}?autoplay=1&mute=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:8px;"></iframe>`;
+                galleryWrap.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${yId}?autoplay=1&mute=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:8px; pointer-events: none;"></iframe>`;
             } else {
                 // Direct video link
-                galleryWrap.innerHTML = `<video src="${item.url}" controls autoplay muted style="width:100%; height:100%; object-fit:contain; border-radius:8px;"></video>`;
+                galleryWrap.innerHTML = `<video src="${item.url}" autoplay muted loop style="width:100%; height:100%; object-fit:contain; border-radius:8px; pointer-events: none;"></video>`;
             }
         } else {
             // Standard Image
-            galleryWrap.innerHTML = `<img src="${item.url}" alt="Product image" style="max-width:100%; max-height:100%; object-fit:contain;">`;
+            galleryWrap.innerHTML = `<img src="${item.url}" alt="Product image" style="max-width:100%; max-height:100%; object-fit:contain; pointer-events: none;">`;
         }
     }
     
     // Load first media item by default
     renderMainMedia(mediaList[0]);
+    
+    // Add click handler on main gallery wrap to launch fullscreen lightbox
+    galleryWrap.style.cursor = 'zoom-in';
+    galleryWrap.addEventListener('click', () => {
+        if (currentActiveMedia) {
+            openFullscreenLightbox(currentActiveMedia);
+        }
+    });
     
     // Render thumbnails
     if (mediaList.length > 1) {
@@ -1183,3 +1203,63 @@ document.addEventListener('DOMContentLoaded', () => {
     // 8. Initial counts sync
     updateCartCounts();
 });
+
+// --- FULLSCREEN LIGHTBOX OVERLAY ---
+function openFullscreenLightbox(media) {
+    const overlay = document.createElement('div');
+    overlay.className = 'lightbox-overlay';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'lightbox-close';
+    closeBtn.setAttribute('aria-label', 'Close fullscreen');
+    closeBtn.innerHTML = '<i class="ph ph-x"></i>';
+    
+    const content = document.createElement('div');
+    content.className = 'lightbox-content';
+    
+    if (media.type === 'video') {
+        if (media.url.includes('youtube.com') || media.url.includes('youtu.be')) {
+            let yId = '';
+            if (media.url.includes('youtube.com/watch')) {
+                yId = new URL(media.url).searchParams.get('v');
+            } else {
+                yId = media.url.split('/').pop();
+            }
+            content.innerHTML = `<iframe src="https://www.youtube.com/embed/${yId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+        } else {
+            content.innerHTML = `<video src="${media.url}" controls autoplay></video>`;
+        }
+    } else {
+        content.innerHTML = `<img src="${media.url}" alt="Fullscreen product image">`;
+    }
+    
+    overlay.appendChild(content);
+    overlay.appendChild(closeBtn);
+    document.body.appendChild(overlay);
+    
+    setTimeout(() => {
+        overlay.classList.add('active');
+    }, 10);
+    
+    const closeLightbox = () => {
+        overlay.classList.remove('active');
+        setTimeout(() => {
+            overlay.remove();
+        }, 300);
+    };
+    
+    closeBtn.addEventListener('click', closeLightbox);
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay || e.target === content) {
+            closeLightbox();
+        }
+    });
+    
+    const escHandler = (e) => {
+        if (e.key === 'Escape') {
+            closeLightbox();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+}
