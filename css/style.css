@@ -611,14 +611,15 @@ button {
 /* Store Front Banner */
 .hero-glass-card.store-front-card {
     max-width: 520px;
-    padding: 12px;
+    padding: 0 !important;
+    overflow: hidden;
 }
 .store-banner-wrap {
     width: 100%;
-    height: 310px;
-    border-radius: calc(var(--radius-lg) - 6px);
+    aspect-ratio: 1024 / 571;
+    height: auto;
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     position: relative;
 }
 .store-banner-img {
@@ -632,25 +633,14 @@ button {
     transform: scale(1.05);
 }
 
-@media (max-width: 768px) {
-    .store-banner-wrap {
-        height: 250px;
-    }
-}
 @media (max-width: 640px) {
     .hero-glass-card.store-front-card {
         max-width: 320px !important;
-    }
-    .store-banner-wrap {
-        height: 190px;
     }
 }
 @media (max-width: 480px) {
     .hero-glass-card.store-front-card {
         max-width: 290px !important;
-    }
-    .store-banner-wrap {
-        height: 170px;
     }
 }
 
