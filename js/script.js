@@ -722,18 +722,64 @@ function resolveColorHex(colorName) {
 // --- PRODUCT DETAILS MODAL OPERATIONS ---
 async function openProductDetailModal(id) {
     const modal = document.getElementById('detailModal');
-    const p = storeProducts.find(prod => prod.id === id);
-    if (!p || !modal) return;
+    const basicProduct = storeProducts.find(prod => prod.id === id);
+    if (!basicProduct || !modal) return;
+    
+    // 1. Populate basic information immediately for zero-lag UX
+    document.getElementById('detailTitle').textContent = basicProduct.name;
+    document.getElementById('detailPrice').textContent = `${basicProduct.price} c.`;
+    
+    const oldPriceEl = document.getElementById('detailOldPrice');
+    if (basicProduct.oldPrice) {
+        oldPriceEl.textContent = `${basicProduct.oldPrice} c.`;
+        oldPriceEl.classList.remove('hidden');
+    } else {
+        oldPriceEl.classList.add('hidden');
+    }
+    
+    // Set loading placeholders
+    document.getElementById('detailDesc').textContent = 'Загрузка описания...';
+    let galleryWrap = document.getElementById('detailMainImgWrap');
+    galleryWrap.innerHTML = `<img src="${basicProduct.image}" alt="Product image" style="max-width:100%; max-height:100%; object-fit:contain; pointer-events: none;">`;
+    const thumbsWrap = document.getElementById('detailThumbs');
+    thumbsWrap.innerHTML = '';
+    thumbsWrap.classList.add('hidden');
+    
+    // Qty default
+    document.getElementById('detailQtyNumber').textContent = '1';
+    
+    // Clean variations groups temporarily
+    const colorsGroup = document.getElementById('detailColorsGroup');
+    const colorsList = document.getElementById('detailColorsList');
+    colorsList.innerHTML = '';
+    colorsGroup.classList.add('hidden');
+    
+    const sizesGroup = document.getElementById('detailSizesGroup');
+    const sizesList = document.getElementById('detailSizesList');
+    sizesList.innerHTML = '';
+    sizesGroup.classList.add('hidden');
+    
+    // Show modal immediately with basic info
+    modal.classList.add('active');
+    const detailBody = modal.querySelector('.detail-body');
+    if (detailBody) detailBody.scrollTop = 0;
+    
+    // 2. Fetch full product details (containing description and gallery photos)
+    let p = basicProduct;
+    try {
+        const response = await fetch(`/api/products/${id}`);
+        if (response.ok) {
+            p = await response.json();
+        }
+    } catch (err) {
+        console.warn('Failed to load full product details, using basic info.', err);
+    }
     
     activeProduct = p;
     activeSelectedColor = '';
     activeSelectedSize = '';
     
-    // Fill text properties
-    document.getElementById('detailTitle').textContent = p.name;
-    document.getElementById('detailPrice').textContent = `${p.price} c.`;
-    
-    // Choose description based on language
+    // Update description
     const lang = getCurrentLang();
     let descText = '';
     if (lang === 'tj') {
@@ -742,22 +788,6 @@ async function openProductDetailModal(id) {
         descText = p.description;
     }
     document.getElementById('detailDesc').textContent = descText || (lang === 'tj' ? 'Интихоби олӣ барои хонаи шумо. Сифати боэътимод ва пойдории кафолатдодашуда.' : 'Изысканный выбор для вашего дома. Высокая практичность и гарантированная долговечность.');
-    
-    // Pricing discounts
-    const oldPriceEl = document.getElementById('detailOldPrice');
-    if (p.oldPrice) {
-        oldPriceEl.textContent = `${p.oldPrice} c.`;
-        oldPriceEl.classList.remove('hidden');
-    } else {
-        oldPriceEl.classList.add('hidden');
-    }
-    
-    // Qty default
-    document.getElementById('detailQtyNumber').textContent = '1';
-    
-    // Media gallery render (Images & Videos)
-    let galleryWrap = document.getElementById('detailMainImgWrap');
-    const thumbsWrap = document.getElementById('detailThumbs');
     
     // Clone galleryWrap to clean up previous event listeners
     if (galleryWrap) {
@@ -778,11 +808,8 @@ async function openProductDetailModal(id) {
     // Extra photos from gallery (new field: images)
     if (p.images && p.images.length > 0) {
         p.images.forEach(img => { if (img) mediaList.push({ type: 'image', url: img }); });
-    } else if (p.extraImages && p.extraImages.length > 0) {
-        // Legacy fallback
-        p.extraImages.forEach(img => mediaList.push({ type: 'image', url: img }));
     }
-
+    
     // Videos support
     if (p.videoUrl) {
         mediaList.push({ type: 'video', url: p.videoUrl });
@@ -796,7 +823,6 @@ async function openProductDetailModal(id) {
         currentActiveMedia = item;
         galleryWrap.innerHTML = '';
         if (item.type === 'video') {
-            // Check if youtube link
             if (item.url.includes('youtube.com') || item.url.includes('youtu.be')) {
                 let yId = '';
                 if (item.url.includes('youtube.com/watch')) {
@@ -806,11 +832,9 @@ async function openProductDetailModal(id) {
                 }
                 galleryWrap.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${yId}?autoplay=1&mute=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="border-radius:8px; pointer-events: none;"></iframe>`;
             } else {
-                // Direct video link
                 galleryWrap.innerHTML = `<video src="${item.url}" autoplay muted loop style="width:100%; height:100%; object-fit:contain; border-radius:8px; pointer-events: none;"></video>`;
             }
         } else {
-            // Standard Image
             galleryWrap.innerHTML = `<img src="${item.url}" alt="Product image" style="max-width:100%; max-height:100%; object-fit:contain; pointer-events: none;">`;
         }
     }
@@ -850,10 +874,6 @@ async function openProductDetailModal(id) {
     }
     
     // Render variations: COLORS
-    const colorsGroup = document.getElementById('detailColorsGroup');
-    const colorsList = document.getElementById('detailColorsList');
-    colorsList.innerHTML = '';
-    
     if (p.colors && p.colors.length > 0) {
         colorsGroup.classList.remove('hidden');
         p.colors.forEach(color => {
@@ -877,10 +897,6 @@ async function openProductDetailModal(id) {
     }
     
     // Render variations: SIZES
-    const sizesGroup = document.getElementById('detailSizesGroup');
-    const sizesList = document.getElementById('detailSizesList');
-    sizesList.innerHTML = '';
-    
     if (p.sizes && p.sizes.length > 0) {
         sizesGroup.classList.remove('hidden');
         p.sizes.forEach(size => {
@@ -901,12 +917,6 @@ async function openProductDetailModal(id) {
     
     // Load reviews list
     loadProductReviews(p.id);
-    
-    // Show modal with scroll reset
-    modal.classList.add('active');
-    // Reset modal body scroll to top
-    const detailBody = modal.querySelector('.detail-body');
-    if (detailBody) detailBody.scrollTop = 0;
 }
 
 // Reset modal active selections

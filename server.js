@@ -435,11 +435,34 @@ app.post('/api/admin/login', async (req, res) => {
 app.get('/api/products', async (req, res) => {
     try {
         if (isMongo) {
-            const products = await ProductModel.find().sort({ id: 1 });
+            // Exclude heavy fields from bulk products list to prevent RAM spikes / OOM crashes
+            const products = await ProductModel.find({}, { images: 0, description: 0, descriptionTj: 0, videoUrl: 0 }).sort({ id: 1 });
             res.json(products);
         } else {
-            const products = readJSON(PRODUCTS_PATH);
+            const allProducts = readJSON(PRODUCTS_PATH);
+            const products = allProducts.map(p => {
+                const { images, description, descriptionTj, videoUrl, ...rest } = p;
+                return rest;
+            });
             res.json(products);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/products/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (isMongo) {
+            const product = await ProductModel.findOne({ id });
+            if (!product) return res.status(404).json({ error: 'Product not found' });
+            res.json(product);
+        } else {
+            const products = readJSON(PRODUCTS_PATH);
+            const product = products.find(p => p.id === id);
+            if (!product) return res.status(404).json({ error: 'Product not found' });
+            res.json(product);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });

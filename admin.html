@@ -1133,48 +1133,69 @@
         }
 
         async function openEditProductModal(id) {
-            const p = adminProducts.find(prod => prod.id === id);
-            if (!p) return;
+            const basicProduct = adminProducts.find(prod => prod.id === id);
+            if (!basicProduct) return;
             
-            document.getElementById('productModalTitle').textContent = `Редактировать товар ID:${id}`;
-            document.getElementById('formProductId').value = p.id;
-            document.getElementById('formProductName').value = p.name;
-            document.getElementById('formProductCategory').value = p.category;
-            document.getElementById('formProductBadge').value = p.badge || '';
-            document.getElementById('formProductPrice').value = p.price;
-            document.getElementById('formProductOldPrice').value = p.oldPrice || '';
-            document.getElementById('formProductDescription').value = p.description || '';
-            document.getElementById('formProductDescriptionTj').value = p.descriptionTj || '';
+            // Set loading text and show modal early
+            document.getElementById('productModalTitle').textContent = `Загрузка товара ID:${id}...`;
+            document.getElementById('formProductId').value = basicProduct.id;
+            document.getElementById('formProductName').value = basicProduct.name;
+            document.getElementById('formProductCategory').value = basicProduct.category;
+            document.getElementById('formProductBadge').value = basicProduct.badge || '';
+            document.getElementById('formProductPrice').value = basicProduct.price;
+            document.getElementById('formProductOldPrice').value = basicProduct.oldPrice || '';
+            document.getElementById('formProductDescription').value = 'Загрузка описания...';
+            document.getElementById('formProductDescriptionTj').value = 'Загрузка описания...';
             
-            formColorTags = p.colors ? [...p.colors] : [];
-            formSizeTags = p.sizes ? [...p.sizes] : [];
+            formColorTags = basicProduct.colors ? [...basicProduct.colors] : [];
+            formSizeTags = basicProduct.sizes ? [...basicProduct.sizes] : [];
             renderColorTagsManager();
             renderSizeTagsManager();
             
-            // Reset all slots first
             clearAllPhotoSlots();
             clearVideo();
-            
-            // Fill photo slots
-            if (p.image) showPhotoInSlot(0, p.image);
-            if (p.images && Array.isArray(p.images)) {
-                p.images.forEach((img, i) => {
-                    if (i < 3 && img) showPhotoInSlot(i + 1, img);
-                });
-            }
-            
-            // Fill video
-            if (p.videoUrl) {
-                videoPath = p.videoUrl;
-                document.getElementById('formProductVideo').value = p.videoUrl;
-                // Show video preview
-                videoPreviewEl.src = p.videoUrl;
-                videoPreviewEl.style.display = 'block';
-                removeVideoBtn.style.display = 'flex';
-                videoZone.classList.add('has-video');
-            }
+            if (basicProduct.image) showPhotoInSlot(0, basicProduct.image);
             
             pModal.classList.add('active');
+            
+            // Fetch full product details asynchronously
+            try {
+                const res = await fetch(`/api/products/${id}`);
+                if (!res.ok) throw new Error('Failed to fetch details');
+                const p = await res.json();
+                
+                document.getElementById('productModalTitle').textContent = `Редактировать товар ID:${id}`;
+                document.getElementById('formProductDescription').value = p.description || '';
+                document.getElementById('formProductDescriptionTj').value = p.descriptionTj || '';
+                
+                formColorTags = p.colors ? [...p.colors] : [];
+                formSizeTags = p.sizes ? [...p.sizes] : [];
+                renderColorTagsManager();
+                renderSizeTagsManager();
+                
+                clearAllPhotoSlots();
+                clearVideo();
+                
+                if (p.image) showPhotoInSlot(0, p.image);
+                if (p.images && Array.isArray(p.images)) {
+                    p.images.forEach((img, i) => {
+                        if (i < 3 && img) showPhotoInSlot(i + 1, img);
+                    });
+                }
+                
+                if (p.videoUrl) {
+                    videoPath = p.videoUrl;
+                    document.getElementById('formProductVideo').value = p.videoUrl;
+                    videoPreviewEl.src = p.videoUrl;
+                    videoPreviewEl.style.display = 'block';
+                    removeVideoBtn.style.display = 'flex';
+                    videoZone.classList.add('has-video');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Не удалось загрузить полные данные товара с сервера!');
+                closeProductModal();
+            }
         }
 
         function closeProductModal() {
