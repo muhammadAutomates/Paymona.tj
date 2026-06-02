@@ -102,10 +102,20 @@ function writeJSON(filePath, data) {
     }
 }
 
+// Helper to strip heavy fields from products array (description, images, videoUrl)
+function getLightweightProducts(products) {
+    return products.map(p => {
+        const obj = p.toObject ? p.toObject() : p;
+        const { images, description, descriptionTj, videoUrl, ...rest } = obj;
+        return rest;
+    });
+}
+
 // Update products.js static file for backward compatibility (if needed)
 function syncProductsJS(products) {
     try {
-        fs.writeFileSync(PRODUCTS_JS_PATH, `const products = ${JSON.stringify(products, null, 2)};`);
+        const lightweight = getLightweightProducts(products);
+        fs.writeFileSync(PRODUCTS_JS_PATH, `const products = ${JSON.stringify(lightweight, null, 2)};`);
     } catch (err) {
         console.error('Failed to sync products.js:', err);
     }
@@ -490,7 +500,7 @@ app.post('/api/products', async (req, res) => {
             
             // Sync to local files in background
             const allProds = await ProductModel.find().sort({ id: 1 });
-            writeJSON(PRODUCTS_PATH, allProds);
+            writeJSON(PRODUCTS_PATH, getLightweightProducts(allProds));
             syncProductsJS(allProds);
             
             res.status(201).json(created);
@@ -522,7 +532,7 @@ app.put('/api/products/:id', async (req, res) => {
             
             // Sync to local files in background
             const allProds = await ProductModel.find().sort({ id: 1 });
-            writeJSON(PRODUCTS_PATH, allProds);
+            writeJSON(PRODUCTS_PATH, getLightweightProducts(allProds));
             syncProductsJS(allProds);
             
             res.json(updated);
@@ -556,7 +566,7 @@ app.delete('/api/products/:id', async (req, res) => {
             }
             
             const allProds = await ProductModel.find().sort({ id: 1 });
-            writeJSON(PRODUCTS_PATH, allProds);
+            writeJSON(PRODUCTS_PATH, getLightweightProducts(allProds));
             syncProductsJS(allProds);
             
             res.json({ success: true, message: 'Product deleted from MongoDB' });
