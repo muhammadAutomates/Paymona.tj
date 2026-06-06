@@ -77,6 +77,19 @@ const TRAFFIC_PATH = path.join(__dirname, 'data', 'traffic.json');
 
 // Memory storage for online clients tracking
 const activeSessions = new Map(); // sessionToken -> timestamp
+let cachedLightweightProducts = null; // in-memory cache for storefront product list
+
+
+// Periodically clean up expired active sessions every 60 seconds to prevent memory leaks
+setInterval(() => {
+    const now = Date.now();
+    const threshold = 15000;
+    for (const [token, timestamp] of activeSessions.entries()) {
+        if (now - timestamp > threshold) {
+            activeSessions.delete(token);
+        }
+    }
+}, 60000);
 
 // Helper to read JSON files safely
 function readJSON(filePath, defaultValue = []) {
@@ -174,7 +187,7 @@ const SettingsSchema = new mongoose.Schema({
 });
 
 const TrafficSchema = new mongoose.Schema({
-    timestamp: Date,
+    timestamp: { type: Date, index: true },
     type: String
 });
 
@@ -184,6 +197,22 @@ const ReviewModel = mongoose.model('Review', ReviewSchema);
 const OrderModel = mongoose.model('Order', OrderSchema);
 const SettingsModel = mongoose.model('Settings', SettingsSchema);
 const TrafficModel = mongoose.model('Traffic', TrafficSchema);
+
+// Function to clean up old traffic records (older than 48 hours) to prevent database bloat
+async function cleanOldTrafficData() {
+    try {
+        if (isMongo) {
+            const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+            const res = await TrafficModel.deleteMany({ timestamp: { $lt: cutoff } });
+            console.log(`Successfully cleaned up old traffic stats from MongoDB. Deleted: ${res.deletedCount}`);
+        }
+    } catch (err) {
+        console.error('Failed to clean up old traffic stats:', err.message);
+    }
+}
+
+// Periodically clean up old traffic data from MongoDB every 12 hours
+setInterval(cleanOldTrafficData, 12 * 60 * 60 * 1000);
 
 // Connection logic
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -234,6 +263,11 @@ if (MONGODB_URI) {
                     console.log('Seeded default settings configuration to MongoDB.');
                 }
             } catch (e) { console.error('Failed to seed settings:', e); }
+
+            // 4. Clean up old traffic stats
+            try {
+                await cleanOldTrafficData();
+            } catch (e) { console.error('Failed to perform initial traffic cleanup:', e); }
         })
         .catch(err => {
             console.error('=================================================');
@@ -381,9 +415,10 @@ app.post('/api/upload-media', (req, res) => {
 app.get('/api/settings', async (req, res) => {
     try {
         if (isMongo) {
-            let settings = await SettingsModel.findOne({ key: 'main' });
+            let settings = await SettingsModel.findOne({ key: 'main' }).lean();
             if (!settings) {
-                settings = await SettingsModel.create({ key: 'main', passcode: 'admin123', telegramChatId: '' });
+                const settingsDoc = await SettingsModel.create({ key: 'main', passcode: 'admin123', telegramChatId: '' });
+                settings = settingsDoc.toObject();
             }
             res.json({ passcode: settings.passcode, telegramChatId: settings.telegramChatId });
         } else {
@@ -424,7 +459,7 @@ app.post('/api/admin/login', async (req, res) => {
         let adminPasscode = 'admin123';
         
         if (isMongo) {
-            const settings = await SettingsModel.findOne({ key: 'main' });
+            const settings = await SettingsModel.findOne({ key: 'main' }).lean();
             if (settings) adminPasscode = settings.passcode;
         } else {
             const settings = readJSON(SETTINGS_PATH, { passcode: 'admin123', telegramChatId: '' });
@@ -445,8 +480,12 @@ app.post('/api/admin/login', async (req, res) => {
 app.get('/api/products', async (req, res) => {
     try {
         if (isMongo) {
+            if (cachedLightweightProducts) {
+                return res.json(cachedLightweightProducts);
+            }
             // Exclude heavy fields from bulk products list to prevent RAM spikes / OOM crashes
-            const products = await ProductModel.find({}, { images: 0, description: 0, descriptionTj: 0, videoUrl: 0 }).sort({ id: 1 });
+            const products = await ProductModel.find({}, { images: 0, description: 0, descriptionTj: 0, videoUrl: 0 }).sort({ id: 1 }).lean();
+            cachedLightweightProducts = products;
             res.json(products);
         } else {
             const allProducts = readJSON(PRODUCTS_PATH);
@@ -465,7 +504,7 @@ app.get('/api/products/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isMongo) {
-            const product = await ProductModel.findOne({ id });
+            const product = await ProductModel.findOne({ id }).lean();
             if (!product) return res.status(404).json({ error: 'Product not found' });
             res.json(product);
         } else {
@@ -492,16 +531,19 @@ app.post('/api/products', async (req, res) => {
         if (!newProduct.badge) newProduct.badge = null;
         
         if (isMongo) {
-            const lastProduct = await ProductModel.findOne().sort({ id: -1 });
+            const lastProduct = await ProductModel.findOne().sort({ id: -1 }).lean();
             const nextId = lastProduct ? lastProduct.id + 1 : 1;
             newProduct.id = nextId;
             
             const created = await ProductModel.create(newProduct);
             
             // Sync to local files in background
-            const allProds = await ProductModel.find().sort({ id: 1 });
+            const allProds = await ProductModel.find().sort({ id: 1 }).lean();
             writeJSON(PRODUCTS_PATH, getLightweightProducts(allProds));
             syncProductsJS(allProds);
+            
+            // Invalidate cache
+            cachedLightweightProducts = null;
             
             res.status(201).json(created);
         } else {
@@ -531,9 +573,12 @@ app.put('/api/products/:id', async (req, res) => {
             }
             
             // Sync to local files in background
-            const allProds = await ProductModel.find().sort({ id: 1 });
+            const allProds = await ProductModel.find().sort({ id: 1 }).lean();
             writeJSON(PRODUCTS_PATH, getLightweightProducts(allProds));
             syncProductsJS(allProds);
+            
+            // Invalidate cache
+            cachedLightweightProducts = null;
             
             res.json(updated);
         } else {
@@ -565,9 +610,12 @@ app.delete('/api/products/:id', async (req, res) => {
                 return res.status(404).json({ error: 'Product not found' });
             }
             
-            const allProds = await ProductModel.find().sort({ id: 1 });
+            const allProds = await ProductModel.find().sort({ id: 1 }).lean();
             writeJSON(PRODUCTS_PATH, getLightweightProducts(allProds));
             syncProductsJS(allProds);
+            
+            // Invalidate cache
+            cachedLightweightProducts = null;
             
             res.json({ success: true, message: 'Product deleted from MongoDB' });
         } else {
@@ -593,7 +641,7 @@ app.delete('/api/products/:id', async (req, res) => {
 app.get('/api/categories', async (req, res) => {
     try {
         if (isMongo) {
-            const categories = await CategoryModel.find().sort({ name_ru: 1 });
+            const categories = await CategoryModel.find().sort({ name_ru: 1 }).lean();
             res.json(categories);
         } else {
             const categories = readJSON(CATEGORIES_PATH);
@@ -609,7 +657,7 @@ app.post('/api/categories', async (req, res) => {
         const newCategory = req.body;
         
         if (isMongo) {
-            const exists = await CategoryModel.findOne({ id: newCategory.id });
+            const exists = await CategoryModel.findOne({ id: newCategory.id }).lean();
             if (exists) {
                 return res.status(400).json({ error: 'Category ID already exists' });
             }
@@ -662,7 +710,7 @@ app.get('/api/reviews/:productId', async (req, res) => {
         const productId = parseInt(req.params.productId);
         
         if (isMongo) {
-            const productReviews = await ReviewModel.find({ productId }).sort({ date: -1 });
+            const productReviews = await ReviewModel.find({ productId }).sort({ date: -1 }).lean();
             res.json(productReviews);
         } else {
             const reviews = readJSON(REVIEWS_PATH);
@@ -700,7 +748,7 @@ app.post('/api/reviews', async (req, res) => {
 app.get('/api/orders', async (req, res) => {
     try {
         if (isMongo) {
-            const orders = await OrderModel.find().sort({ id: -1 });
+            const orders = await OrderModel.find().sort({ id: -1 }).lean();
             res.json(orders);
         } else {
             const orders = readJSON(ORDERS_PATH);
@@ -721,7 +769,7 @@ app.put('/api/orders/:id/status', async (req, res) => {
             if (!updated) {
                 return res.status(404).json({ error: 'Order not found' });
             }
-            const allOrders = await OrderModel.find().sort({ id: -1 });
+            const allOrders = await OrderModel.find().sort({ id: -1 }).lean();
             writeJSON(ORDERS_PATH, allOrders);
             res.json(updated);
         } else {
@@ -746,7 +794,7 @@ app.post('/api/orders', async (req, res) => {
         let finalOrder = null;
         
         if (isMongo) {
-            const lastOrder = await OrderModel.findOne().sort({ id: -1 });
+            const lastOrder = await OrderModel.findOne().sort({ id: -1 }).lean();
             orderId = lastOrder ? lastOrder.id + 1 : 1001;
             
             orderData.id = orderId;
@@ -769,11 +817,15 @@ app.post('/api/orders', async (req, res) => {
             writeJSON(ORDERS_PATH, orders);
             
             const traffic = readJSON(TRAFFIC_PATH);
-            traffic.push({
+            const now = Date.now();
+            const fortyEightHours = 48 * 60 * 60 * 1000;
+            // Clean up old local traffic records
+            const filtered = traffic.filter(log => (now - new Date(log.timestamp).getTime()) <= fortyEightHours);
+            filtered.push({
                 timestamp: new Date().toISOString(),
                 type: 'order'
             });
-            writeJSON(TRAFFIC_PATH, traffic);
+            writeJSON(TRAFFIC_PATH, filtered);
             
             finalOrder = orderData;
         }
@@ -781,7 +833,7 @@ app.post('/api/orders', async (req, res) => {
         // Dispatch Telegram Bot Notification
         let telegramChatId = '';
         if (isMongo) {
-            const settings = await SettingsModel.findOne({ key: 'main' });
+            const settings = await SettingsModel.findOne({ key: 'main' }).lean();
             if (settings) telegramChatId = settings.telegramChatId;
         } else {
             const settings = readJSON(SETTINGS_PATH, { passcode: 'admin123', telegramChatId: '' });
@@ -858,11 +910,15 @@ app.post('/api/log-visit', async (req, res) => {
             await TrafficModel.create({ timestamp: new Date(), type: 'visit' });
         } else {
             const traffic = readJSON(TRAFFIC_PATH);
-            traffic.push({
+            const now = Date.now();
+            const fortyEightHours = 48 * 60 * 60 * 1000;
+            // Clean up old local traffic records
+            const filtered = traffic.filter(log => (now - new Date(log.timestamp).getTime()) <= fortyEightHours);
+            filtered.push({
                 timestamp: new Date().toISOString(),
                 type: 'visit'
             });
-            writeJSON(TRAFFIC_PATH, traffic);
+            writeJSON(TRAFFIC_PATH, filtered);
         }
         res.json({ success: true });
     } catch (err) {
@@ -891,7 +947,7 @@ app.get('/api/traffic-stats', async (req, res) => {
         if (isMongo) {
             traffic = await TrafficModel.find({
                 timestamp: { $gte: new Date(now - 24 * oneHour) }
-            });
+            }).lean();
         } else {
             traffic = readJSON(TRAFFIC_PATH);
         }
