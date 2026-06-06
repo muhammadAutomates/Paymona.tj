@@ -134,6 +134,31 @@ function syncProductsJS(products) {
     }
 }
 
+// Debounce local files sync to prevent OOM spikes when multiple mutations occur concurrently
+let syncTimeout = null;
+function syncLocalFilesFallback() {
+    if (syncTimeout) {
+        clearTimeout(syncTimeout);
+    }
+    syncTimeout = setTimeout(async () => {
+        try {
+            let products = [];
+            if (isMongo) {
+                // Exclude heavy fields from products query to save memory
+                products = await ProductModel.find({}, { images: 0, description: 0, descriptionTj: 0, videoUrl: 0 }).sort({ id: 1 }).lean();
+            } else {
+                products = readJSON(PRODUCTS_PATH);
+            }
+            const lightweight = getLightweightProducts(products);
+            writeJSON(PRODUCTS_PATH, lightweight);
+            fs.writeFileSync(PRODUCTS_JS_PATH, `const products = ${JSON.stringify(lightweight, null, 2)};`);
+            console.log('Successfully synced products to local fallback files (debounced).');
+        } catch (err) {
+            console.error('Failed to sync local fallback files:', err.message);
+        }
+    }, 5000);
+}
+
 // --- DATABASE HYBRID STORAGE SETUP (MongoDB Atlas + Local JSON Fallback) ---
 let isMongo = false;
 
@@ -537,13 +562,11 @@ app.post('/api/products', async (req, res) => {
             
             const created = await ProductModel.create(newProduct);
             
-            // Sync to local files in background
-            const allProds = await ProductModel.find().sort({ id: 1 }).lean();
-            writeJSON(PRODUCTS_PATH, getLightweightProducts(allProds));
-            syncProductsJS(allProds);
-            
             // Invalidate cache
             cachedLightweightProducts = null;
+            
+            // Sync to local files in background (debounced)
+            syncLocalFilesFallback();
             
             res.status(201).json(created);
         } else {
@@ -572,13 +595,11 @@ app.put('/api/products/:id', async (req, res) => {
                 return res.status(404).json({ error: 'Product not found' });
             }
             
-            // Sync to local files in background
-            const allProds = await ProductModel.find().sort({ id: 1 }).lean();
-            writeJSON(PRODUCTS_PATH, getLightweightProducts(allProds));
-            syncProductsJS(allProds);
-            
             // Invalidate cache
             cachedLightweightProducts = null;
+            
+            // Sync to local files in background (debounced)
+            syncLocalFilesFallback();
             
             res.json(updated);
         } else {
@@ -610,12 +631,11 @@ app.delete('/api/products/:id', async (req, res) => {
                 return res.status(404).json({ error: 'Product not found' });
             }
             
-            const allProds = await ProductModel.find().sort({ id: 1 }).lean();
-            writeJSON(PRODUCTS_PATH, getLightweightProducts(allProds));
-            syncProductsJS(allProds);
-            
             // Invalidate cache
             cachedLightweightProducts = null;
+            
+            // Sync to local files in background (debounced)
+            syncLocalFilesFallback();
             
             res.json({ success: true, message: 'Product deleted from MongoDB' });
         } else {
