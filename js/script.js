@@ -552,10 +552,14 @@ function initParticles(canvasId, dotColor) {
 
 
 
-// Log visit to analytics backend
+// Log visit to analytics backend (only once per browser session to prevent database bloat)
 async function logVisitorVisit() {
     try {
+        if (sessionStorage.getItem('paymona_visit_logged')) {
+            return;
+        }
         await fetch('/api/log-visit', { method: 'POST' });
+        sessionStorage.setItem('paymona_visit_logged', 'true');
     } catch (e) {
         console.warn('Stats logging unavailable');
     }
@@ -616,8 +620,8 @@ function handleNavbarScroll() {
 function startClientPinger() {
     // Send immediate ping
     sendPing();
-    // Ping every 10 seconds to keep session alive in metrics
-    setInterval(sendPing, 10000);
+    // Ping every 30 seconds to keep session alive in metrics (reduces server traffic)
+    setInterval(sendPing, 30000);
 }
 
 async function sendPing() {

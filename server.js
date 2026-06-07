@@ -83,7 +83,7 @@ let cachedLightweightProducts = null; // in-memory cache for storefront product 
 // Periodically clean up expired active sessions every 60 seconds to prevent memory leaks
 setInterval(() => {
     const now = Date.now();
-    const threshold = 15000;
+    const threshold = 45000; // 45 seconds grace period for 30s ping interval
     for (const [token, timestamp] of activeSessions.entries()) {
         if (now - timestamp > threshold) {
             activeSessions.delete(token);
@@ -230,6 +230,8 @@ async function cleanOldTrafficData() {
             const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
             const res = await TrafficModel.deleteMany({ timestamp: { $lt: cutoff } });
             console.log(`Successfully cleaned up old traffic stats from MongoDB. Deleted: ${res.deletedCount}`);
+            const totalRemaining = await TrafficModel.countDocuments();
+            console.log(`Total remaining traffic records in MongoDB: ${totalRemaining}`);
         }
     } catch (err) {
         console.error('Failed to clean up old traffic stats:', err.message);
@@ -912,7 +914,7 @@ app.post('/api/ping', (req, res) => {
 // Fetch active users in last 15 seconds
 app.get('/api/online-count', (req, res) => {
     const now = Date.now();
-    const threshold = 15000;
+    const threshold = 45000; // 45 seconds timeout
     
     for (const [token, timestamp] of activeSessions.entries()) {
         if (now - timestamp > threshold) {
@@ -967,7 +969,7 @@ app.get('/api/traffic-stats', async (req, res) => {
         if (isMongo) {
             traffic = await TrafficModel.find({
                 timestamp: { $gte: new Date(now - 24 * oneHour) }
-            }).lean();
+            }, { timestamp: 1, type: 1, _id: 0 }).lean();
         } else {
             traffic = readJSON(TRAFFIC_PATH);
         }
