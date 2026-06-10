@@ -296,6 +296,20 @@ if (MONGODB_URI) {
                 await cleanOldTrafficData();
             } catch (e) { console.error('Failed to perform initial traffic cleanup:', e); }
 
+            // 6. One-time deletion of seeded default products (ID <= 117)
+            try {
+                const deleteResult = await ProductModel.deleteMany({ id: { $lte: 117 } });
+                if (deleteResult.deletedCount > 0) {
+                    console.log(`Successfully deleted ${deleteResult.deletedCount} default seeded products from MongoDB.`);
+                    // Invalidate cache
+                    cachedLightweightProducts = null;
+                    // Sync local fallback files
+                    syncLocalFilesFallback();
+                }
+            } catch (e) {
+                console.error('Failed to delete default products:', e);
+            }
+
             // 5. Measure product data sizes in MongoDB to detect oversized Base64 images
             try {
                 const prods = await ProductModel.find().lean();
