@@ -310,35 +310,58 @@ if (MONGODB_URI) {
                 console.error('Failed to delete default products:', e);
             }
 
-            // 5. Measure product data sizes in MongoDB to detect oversized Base64 images
+            // 5. Measure product data sizes in MongoDB using aggregation database-side (prevents server RAM OOM)
             try {
-                const prods = await ProductModel.find().lean();
-                let totalSize = 0;
-                let oversizedProds = [];
-                
-                prods.forEach(p => {
-                    let prodSize = JSON.stringify(p).length;
-                    totalSize += prodSize;
-                    if (prodSize > 200 * 1024) { // over 200KB
-                        oversizedProds.push({ id: p.id, name: p.name, sizeKB: Math.round(prodSize / 1024) });
+                const totalCount = await ProductModel.countDocuments();
+                const oversizedProds = await ProductModel.aggregate([
+                    {
+                        $project: {
+                            id: 1,
+                            name: 1,
+                            imageSize: { $strLenCP: { $ifNull: ["$image", ""] } },
+                            imagesSize: {
+                                $cond: {
+                                    if: { $isArray: "$images" },
+                                    then: {
+                                        $reduce: {
+                                            input: "$images",
+                                            initialValue: 0,
+                                            in: { $add: ["$$value", { $strLenCP: { $ifNull: ["$$this", ""] } }] }
+                                        }
+                                    },
+                                    else: 0
+                                }
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            id: 1,
+                            name: 1,
+                            totalSizeKB: { $round: [ { $divide: [ { $add: ["$imageSize", "$imagesSize"] }, 1024 ] }, 0 ] }
+                        }
+                    },
+                    {
+                        $match: {
+                            totalSizeKB: { $gt: 200 }
+                        }
                     }
-                });
-                
+                ]);
+
                 console.log('=================================================');
                 console.log(`  Database Diagnostics:`);
-                console.log(`  Total Products: ${prods.length}`);
-                console.log(`  Total Products Collection Size: ${Math.round(totalSize / 1024)} KB`);
+                console.log(`  Total Products in MongoDB: ${totalCount}`);
                 if (oversizedProds.length > 0) {
                     console.log(`  WARNING: Found ${oversizedProds.length} oversized products (over 200KB):`);
                     oversizedProds.forEach(op => {
-                        console.log(`    - Product #${op.id} "${op.name}": ${op.sizeKB} KB`);
+                        console.log(`    - Product #${op.id} "${op.name}": ~${op.totalSizeKB} KB`);
                     });
                     console.log(`  Recommendation: Re-upload photos for these products in the Admin Panel to compress them.`);
                 } else {
                     console.log(`  All products are under 200KB. Database size is optimal.`);
                 }
                 console.log('=================================================');
-            } catch (e) { console.error('Failed to run product size diagnostics:', e); }
+            } catch (e) { console.error('Failed to run product size diagnostics Aggregation:', e); }
         })
         .catch(err => {
             console.error('=================================================');
