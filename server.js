@@ -570,6 +570,131 @@ app.post('/api/admin/login', async (req, res) => {
     }
 });
 
+// Helper to resolve client payloads containing dynamic image URLs back to database base64 values
+function resolveProductPayloadImages(payload, existingProduct) {
+    if (!existingProduct) return payload;
+    
+    // 1. Resolve main image
+    if (payload.image && typeof payload.image === 'string' && payload.image.startsWith('/api/products/')) {
+        const imageMatch = payload.image.match(/\/api\/products\/(\d+)\/image$/);
+        const galleryMatch = payload.image.match(/\/api\/products\/(\d+)\/images\/(\d+)$/);
+        
+        if (imageMatch) {
+            payload.image = existingProduct.image;
+        } else if (galleryMatch) {
+            const origIndex = parseInt(galleryMatch[2]);
+            if (existingProduct.images && existingProduct.images[origIndex]) {
+                payload.image = existingProduct.images[origIndex];
+            }
+        }
+    }
+    
+    // 2. Resolve gallery images
+    if (payload.images && Array.isArray(payload.images)) {
+        payload.images = payload.images.map(img => {
+            if (img && typeof img === 'string' && img.startsWith('/api/products/')) {
+                const imageMatch = img.match(/\/api\/products\/(\d+)\/image$/);
+                const galleryMatch = img.match(/\/api\/products\/(\d+)\/images\/(\d+)$/);
+                
+                if (imageMatch) {
+                    return existingProduct.image;
+                } else if (galleryMatch) {
+                    const origIndex = parseInt(galleryMatch[2]);
+                    if (existingProduct.images && existingProduct.images[origIndex]) {
+                        return existingProduct.images[origIndex];
+                    }
+                }
+            }
+            return img;
+        });
+    }
+    
+    return payload;
+}
+
+// Serve cover image dynamically
+app.get('/api/products/:id/image', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        let product;
+        if (isMongo) {
+            product = await ProductModel.findOne({ id }).lean();
+        } else {
+            const products = readJSON(PRODUCTS_PATH);
+            product = products.find(p => p.id === id);
+        }
+        
+        if (!product || !product.image) {
+            return res.status(404).send('Image not found');
+        }
+        
+        const imageStr = product.image;
+        if (imageStr.startsWith('data:')) {
+            const matches = imageStr.match(/^data:([^;]+);base64,(.+)$/);
+            if (matches) {
+                const mimeType = matches[1];
+                const buffer = Buffer.from(matches[2], 'base64');
+                res.set('Content-Type', mimeType);
+                res.set('Cache-Control', 'public, max-age=3600');
+                return res.send(buffer);
+            }
+        }
+        
+        // If it's a URL or file path, redirect
+        if (imageStr.startsWith('http://') || imageStr.startsWith('https://')) {
+            return res.redirect(imageStr);
+        }
+        
+        const redirectPath = imageStr.startsWith('/') ? imageStr : '/' + imageStr;
+        return res.redirect(redirectPath);
+    } catch (err) {
+        console.error('Error serving product image:', err);
+        res.status(500).send('Internal server error');
+    }
+});
+
+// Serve gallery images dynamically
+app.get('/api/products/:id/images/:index', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const index = parseInt(req.params.index);
+        let product;
+        if (isMongo) {
+            product = await ProductModel.findOne({ id }).lean();
+        } else {
+            const products = readJSON(PRODUCTS_PATH);
+            product = products.find(p => p.id === id);
+        }
+        
+        if (!product || !product.images || !product.images[index]) {
+            return res.status(404).send('Image not found');
+        }
+        
+        const imageStr = product.images[index];
+        if (imageStr.startsWith('data:')) {
+            const matches = imageStr.match(/^data:([^;]+);base64,(.+)$/);
+            if (matches) {
+                const mimeType = matches[1];
+                const buffer = Buffer.from(matches[2], 'base64');
+                res.set('Content-Type', mimeType);
+                res.set('Cache-Control', 'public, max-age=3600');
+                return res.send(buffer);
+            }
+        }
+        
+        // If it's a URL or file path, redirect
+        if (imageStr.startsWith('http://') || imageStr.startsWith('https://')) {
+            return res.redirect(imageStr);
+        }
+        
+        const redirectPath = imageStr.startsWith('/') ? imageStr : '/' + imageStr;
+        return res.redirect(redirectPath);
+    } catch (err) {
+        console.error('Error serving product gallery image:', err);
+        res.status(500).send('Internal server error');
+    }
+});
+
 // Products CRUD APIs
 app.get('/api/products', async (req, res) => {
     try {
@@ -579,12 +704,21 @@ app.get('/api/products', async (req, res) => {
             }
             // Exclude heavy fields from bulk products list to prevent RAM spikes / OOM crashes
             const products = await ProductModel.find({}, { images: 0, description: 0, descriptionTj: 0, videoUrl: 0 }).sort({ id: 1 }).lean();
-            cachedLightweightProducts = products;
-            res.json(products);
+            const processedProducts = products.map(p => {
+                if (p.image && p.image.startsWith('data:')) {
+                    return { ...p, image: `/api/products/${p.id}/image` };
+                }
+                return p;
+            });
+            cachedLightweightProducts = processedProducts;
+            res.json(processedProducts);
         } else {
             const allProducts = readJSON(PRODUCTS_PATH);
             const products = allProducts.map(p => {
                 const { images, description, descriptionTj, videoUrl, ...rest } = p;
+                if (rest.image && rest.image.startsWith('data:')) {
+                    rest.image = `/api/products/${p.id}/image`;
+                }
                 return rest;
             });
             res.json(products);
@@ -600,12 +734,38 @@ app.get('/api/products/:id', async (req, res) => {
         if (isMongo) {
             const product = await ProductModel.findOne({ id }).lean();
             if (!product) return res.status(404).json({ error: 'Product not found' });
-            res.json(product);
+            
+            const processedProduct = { ...product };
+            if (processedProduct.image && processedProduct.image.startsWith('data:')) {
+                processedProduct.image = `/api/products/${id}/image`;
+            }
+            if (processedProduct.images && Array.isArray(processedProduct.images)) {
+                processedProduct.images = processedProduct.images.map((img, i) => {
+                    if (img && img.startsWith('data:')) {
+                        return `/api/products/${id}/images/${i}`;
+                    }
+                    return img;
+                });
+            }
+            res.json(processedProduct);
         } else {
             const products = readJSON(PRODUCTS_PATH);
             const product = products.find(p => p.id === id);
             if (!product) return res.status(404).json({ error: 'Product not found' });
-            res.json(product);
+            
+            const processedProduct = { ...product };
+            if (processedProduct.image && processedProduct.image.startsWith('data:')) {
+                processedProduct.image = `/api/products/${id}/image`;
+            }
+            if (processedProduct.images && Array.isArray(processedProduct.images)) {
+                processedProduct.images = processedProduct.images.map((img, i) => {
+                    if (img && img.startsWith('data:')) {
+                        return `/api/products/${id}/images/${i}`;
+                    }
+                    return img;
+                });
+            }
+            res.json(processedProduct);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -659,7 +819,13 @@ app.put('/api/products/:id', async (req, res) => {
         const id = parseInt(req.params.id);
         
         if (isMongo) {
-            const updated = await ProductModel.findOneAndUpdate({ id }, { $set: req.body }, { returnDocument: 'after' });
+            const existingProduct = await ProductModel.findOne({ id }).lean();
+            if (!existingProduct) {
+                return res.status(404).json({ error: 'Product not found' });
+            }
+            
+            const resolvedBody = resolveProductPayloadImages(req.body, existingProduct);
+            const updated = await ProductModel.findOneAndUpdate({ id }, { $set: resolvedBody }, { returnDocument: 'after' });
             if (!updated) {
                 return res.status(404).json({ error: 'Product not found' });
             }
@@ -670,7 +836,20 @@ app.put('/api/products/:id', async (req, res) => {
             // Sync to local files in background (debounced)
             syncLocalFilesFallback();
             
-            res.json(updated);
+            // Process images before sending
+            const processedProduct = updated.toObject ? updated.toObject() : { ...updated };
+            if (processedProduct.image && processedProduct.image.startsWith('data:')) {
+                processedProduct.image = `/api/products/${id}/image`;
+            }
+            if (processedProduct.images && Array.isArray(processedProduct.images)) {
+                processedProduct.images = processedProduct.images.map((img, i) => {
+                    if (img && img.startsWith('data:')) {
+                        return `/api/products/${id}/images/${i}`;
+                    }
+                    return img;
+                });
+            }
+            res.json(processedProduct);
         } else {
             const products = readJSON(PRODUCTS_PATH);
             const index = products.findIndex(p => p.id === id);
@@ -679,11 +858,25 @@ app.put('/api/products/:id', async (req, res) => {
                 return res.status(404).json({ error: 'Product not found' });
             }
             
-            products[index] = { ...products[index], ...req.body, id };
+            const existingProduct = products[index];
+            const resolvedBody = resolveProductPayloadImages(req.body, existingProduct);
+            products[index] = { ...existingProduct, ...resolvedBody, id };
             writeJSON(PRODUCTS_PATH, products);
             syncProductsJS(products);
             
-            res.json(products[index]);
+            const processedProduct = { ...products[index] };
+            if (processedProduct.image && processedProduct.image.startsWith('data:')) {
+                processedProduct.image = `/api/products/${id}/image`;
+            }
+            if (processedProduct.images && Array.isArray(processedProduct.images)) {
+                processedProduct.images = processedProduct.images.map((img, i) => {
+                    if (img && img.startsWith('data:')) {
+                        return `/api/products/${id}/images/${i}`;
+                    }
+                    return img;
+                });
+            }
+            res.json(processedProduct);
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
