@@ -1091,7 +1091,15 @@
                 const res = await fetch('/api/products');
                 if(res.ok) {
                     adminProducts = await res.json();
-                    renderProductsTable(adminProducts);
+                    
+                    const searchInput = document.getElementById('productsSearchInput');
+                    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+                    if (query) {
+                        const filtered = adminProducts.filter(p => p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
+                        renderProductsTable(filtered);
+                    } else {
+                        renderProductsTable(adminProducts);
+                    }
                 }
             } catch(e) {}
         }
