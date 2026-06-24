@@ -15,7 +15,7 @@ const i18n = {
         footer_cat: "Каталог", footer_contact: "Контакты", 
         footer_address: "ул. Айни 62, г. Душанбе (База №3, возле 3-го светофора)",
         catalog_empty: "Товары загружаются...", search_placeholder: "Поиск...",
-        cart_title: "Корзина", cart_total: "Итого к оплате:", cart_checkout: "Оформить заказ", phone_label: "Номер телефона для подтверждения:",
+        cart_title: "Корзина", cart_total: "Итого к оплате:", cart_checkout: "Оформить заказ", phone_label: "Номер телефона для подтверждения:", address_label: "Адрес доставки:", address_placeholder: "Укажите город, улицу, дом, квартиру...",
         var_color: "Цвет", var_size: "Размер", btn_add_cart: "В корзину",
         reviews_title: "Отзывы покупателей", write_review: "Оставить отзыв", rating_label: "Ваша оценка", 
         review_name: "Ваше имя", review_text: "Комментарий", review_submit: "Отправить отзыв",
@@ -36,7 +36,7 @@ const i18n = {
         footer_cat: "Каталог", footer_contact: "Тамос", 
         footer_address: "кӯчаи Айнӣ 62, ш. Душанбе (Базаи №3, назди чароғаки роҳи 3-юм)",
         catalog_empty: "Молҳо бор карда мешаванд...", search_placeholder: "Ҷустуҷӯ...",
-        cart_title: "Сабад", cart_total: "Ҷамъ ба пардохт:", cart_checkout: "Ба расмият даровардани фармоиш", phone_label: "Рақами телефон барои тасдиқ:",
+        cart_title: "Сабад", cart_total: "Ҷамъ ба пардохт:", cart_checkout: "Ба расмият даровардани фармоиш", phone_label: "Рақами телефон барои тасдиқ:", address_label: "Суроғаи интиқол:", address_placeholder: "Шаҳр, кӯча, хона, ҳуҷраро ворид кунед...",
         var_color: "Ранг", var_size: "Андоза", btn_add_cart: "Ба сабад",
         reviews_title: "Фикру мулоҳизаҳо", write_review: "Навиштани фикр", rating_label: "Баҳои шумо", 
         review_name: "Номи шумо", review_text: "Шарҳ", review_submit: "Фиристодани фикр",
@@ -57,7 +57,7 @@ const i18n = {
         footer_cat: "Catalog", footer_contact: "Contact", 
         footer_address: "Ayni street 62, Dushanbe (Base #3, near 3rd traffic light)",
         catalog_empty: "Products are loading...", search_placeholder: "Search...",
-        cart_title: "Cart", cart_total: "Total to Pay:", cart_checkout: "Checkout", phone_label: "Phone number for confirmation:",
+        cart_title: "Cart", cart_total: "Total to Pay:", cart_checkout: "Checkout", phone_label: "Phone number for confirmation:", address_label: "Delivery address:", address_placeholder: "City, street, house, apartment number...",
         var_color: "Color", var_size: "Size", btn_add_cart: "Add to Cart",
         reviews_title: "Customer Reviews", write_review: "Write a Review", rating_label: "Your Rating", 
         review_name: "Your Name", review_text: "Comment", review_submit: "Submit Review",
@@ -1229,6 +1229,7 @@ document.getElementById('checkoutForm')?.addEventListener('submit', async (e) =>
     if (shoppingCart.length === 0) return;
     
     const phoneInput = document.getElementById('checkoutPhoneInput');
+    const addressInput = document.getElementById('checkoutAddressInput');
     const submitBtn = document.getElementById('checkoutSubmitBtn');
     const lang = getCurrentLang();
     
@@ -1236,6 +1237,7 @@ document.getElementById('checkoutForm')?.addEventListener('submit', async (e) =>
     
     const orderPayload = {
         phone: phoneInput.value,
+        address: addressInput ? addressInput.value.trim() : '',
         items: shoppingCart,
         totalPrice: totalVal
     };
@@ -1257,6 +1259,7 @@ document.getElementById('checkoutForm')?.addEventListener('submit', async (e) =>
             updateCartCounts();
             toggleCartDrawer();
             phoneInput.value = '';
+            if (addressInput) addressInput.value = '';
         } else {
             throw new Error('Failed to create order');
         }

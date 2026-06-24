@@ -446,6 +446,7 @@
                                 <tr>
                                     <th>ID заказа</th>
                                     <th>Клиент (Тел)</th>
+                                    <th>Адрес доставки</th>
                                     <th>Дата/Время</th>
                                     <th>Товары в заказе (Свойства)</th>
                                     <th>Сумма</th>
@@ -1645,6 +1646,7 @@
                         tr.innerHTML = `
                             <td><b>#${o.id}</b></td>
                             <td><b>+992 ${o.phone}</b></td>
+                            <td>${o.address || '—'}</td>
                             <td>${dateStr}</td>
                             <td>${itemsHtml}</td>
                             <td><b style="color:var(--brand-red);">${o.totalPrice} c.</b></td>
@@ -1728,6 +1730,7 @@
             // Submit mock order to trigger telegram
             const testPayload = {
                 phone: '555597878 [ТЕСТ]',
+                address: 'Душанбе, тестовый адрес [ТЕСТ]',
                 items: [
                     { name: ' Bergamo [ТЕСТОВЫЙ ТОВАР]', price: 850, quantity: 1, color: 'Красный', size: 'Standart' }
                 ],

@@ -208,6 +208,7 @@ const ReviewSchema = new mongoose.Schema({
 const OrderSchema = new mongoose.Schema({
     id: { type: Number, unique: true },
     phone: String,
+    address: String,
     date: Date,
     status: String,
     totalPrice: Number,
@@ -1141,8 +1142,10 @@ app.post('/api/orders', async (req, res) => {
                 itemsText += `• ${item.name} x${item.quantity}${colorInfo}${sizeInfo} — ${item.price * item.quantity} c.\n`;
             });
             
+            const addressText = orderData.address ? `📍 *Адрес:* ${orderData.address}\n` : '';
             const messageText = `🛍️ *Новый заказ №${orderId}* в Paymona!\n\n` +
                                 `👤 *Клиент:* +992 ${orderData.phone}\n` +
+                                addressText +
                                 `📦 *Товары:*\n${itemsText}\n` +
                                 `💵 *Итого к оплате:* *${orderData.totalPrice} c.*\n` +
                                 `📅 *Время:* ${new Date(orderData.date).toLocaleString('ru-RU')}`;
