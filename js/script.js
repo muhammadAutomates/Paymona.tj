@@ -579,7 +579,7 @@ function initScrollReveal() {
     containers.forEach(container => {
         const items = container.querySelectorAll('.scroll-reveal');
         items.forEach((item, idx) => {
-            item.style.transitionDelay = `${idx * 0.07}s`;
+            item.style.transitionDelay = `${(idx % 4) * 0.03}s`;
         });
     });
     

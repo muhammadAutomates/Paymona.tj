@@ -2401,8 +2401,8 @@ textarea.form-input {
     opacity: 0;
     /* Removed blur() — it causes GPU lag on mobile during paint */
     transform: translateY(30px); /* Default slide up */
-    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     will-change: transform, opacity;
 }
 
