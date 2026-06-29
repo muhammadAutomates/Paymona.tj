@@ -497,6 +497,20 @@
                             <button type="submit" class="btn btn-primary" style="padding: 10px 24px; align-self: flex-start;">Обновить пароль</button>
                         </form>
                     </div>
+
+                    <div class="admin-card mt-20" style="border: 1px solid var(--brand-red);">
+                        <div class="admin-card-header">
+                            <h3 class="admin-card-title" style="color: var(--brand-red);">Сброс статистики и заказов</h3>
+                        </div>
+                        <div class="flex-column gap-15">
+                            <p style="font-size: 0.9rem; color: var(--text-muted);">
+                                Внимание! Это действие безвозвратно удалит всю историю заказов и обнулит статистику посещений/выручки.
+                            </p>
+                            <button type="button" id="clearHistoryBtn" class="btn" style="background-color: var(--brand-red); color: white; padding: 12px 24px; border: none; border-radius: var(--radius-md); font-weight: 700; align-self: flex-start; cursor: pointer;">
+                                <i class="ph ph-trash"></i> Очистить историю заказов и выручку
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -1771,7 +1785,23 @@
                     sessionStorage.removeItem('paymona_admin_token');
                     window.location.reload();
                 }
-            } catch(e) {}
+        });
+
+        // Clear order history and traffic statistics
+        document.getElementById('clearHistoryBtn')?.addEventListener('click', async () => {
+            if (!confirm('Вы действительно хотите БЕЗВОЗВРАТНО очистить всю историю заказов и обнулить выручку?')) return;
+            try {
+                const res = await fetch('/api/orders', { method: 'DELETE' });
+                if (res.ok) {
+                    alert('История заказов и выручка успешно очищены!');
+                    window.location.reload();
+                } else {
+                    const err = await res.json();
+                    alert(err.error || 'Ошибка при очистке');
+                }
+            } catch (err) {
+                alert('Ошибка соединения с сервером');
+            }
         });
 
     </script>

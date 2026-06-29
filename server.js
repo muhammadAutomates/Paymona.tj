@@ -1182,6 +1182,25 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 
+// Clear Order History & Traffic Stats
+app.delete('/api/orders', async (req, res) => {
+    try {
+        if (isMongo) {
+            await OrderModel.deleteMany({});
+            await TrafficModel.deleteMany({});
+            writeJSON(ORDERS_PATH, []);
+            writeJSON(TRAFFIC_PATH, []);
+        } else {
+            writeJSON(ORDERS_PATH, []);
+            writeJSON(TRAFFIC_PATH, []);
+        }
+        console.log('Order history and traffic stats cleared successfully!');
+        res.json({ success: true, message: 'История заказов и выручка успешно очищены!' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Live Visitors Tracking (Pings)
 app.post('/api/ping', (req, res) => {
     const { token } = req.body;
