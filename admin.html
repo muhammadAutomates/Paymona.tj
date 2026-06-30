@@ -184,7 +184,7 @@
 <body class="admin-body">
 
     <!-- SECURE PASSCODE AUTHORIZATION GATEWAY -->
-    <div id="adminAuthOverlay" class="admin-login-overlay">
+    <div id="adminAuthOverlay" class="admin-login-overlay hidden">
         <div class="admin-login-card">
             <div class="admin-login-logo">Паймона</div>
             <p class="admin-login-subtitle">Панель управления / Вход для администратора</p>
@@ -724,13 +724,10 @@
             });
         }
 
-        // Check Authorization immediately
-        if (sessionStorage.getItem('paymona_admin_token') !== 'paymona-admin-session-auth') {
-            document.getElementById('adminAuthOverlay').classList.remove('hidden');
-        } else {
-            document.getElementById('adminAuthOverlay').classList.add('hidden');
-            bootstrapAdminDashboard();
-        }
+        // Check Authorization immediately - Bypass authentication as requested
+        sessionStorage.setItem('paymona_admin_token', 'paymona-admin-session-auth');
+        document.getElementById('adminAuthOverlay').classList.add('hidden');
+        bootstrapAdminDashboard();
 
         // Handle Admin Login submission
         document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
