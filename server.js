@@ -1364,11 +1364,18 @@ app.get('/api/debug-db', async (req, res) => {
         let prodsCount = 0;
         let categoriesCount = 0;
         let ordersCount = 0;
+        let testProduct = null;
+        let testError = null;
         
         if (isMongo && mongoose.connection.readyState === 1) {
             prodsCount = await ProductModel.countDocuments();
             categoriesCount = await CategoryModel.countDocuments();
             ordersCount = await OrderModel.countDocuments();
+            try {
+                testProduct = await ProductModel.findOne({}, { id: 1, name: 1 }).lean();
+            } catch (err) {
+                testError = err.message;
+            }
         } else {
             prodsCount = readJSON(PRODUCTS_PATH).length;
             categoriesCount = readJSON(CATEGORIES_PATH).length;
@@ -1381,7 +1388,9 @@ app.get('/api/debug-db', async (req, res) => {
             hasUri: !!process.env.MONGODB_URI,
             products: prodsCount,
             categories: categoriesCount,
-            orders: ordersCount
+            orders: ordersCount,
+            testProduct,
+            testError
         });
     } catch (err) {
         res.json({
