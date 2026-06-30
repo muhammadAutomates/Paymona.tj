@@ -161,8 +161,12 @@ function syncLocalFilesFallback() {
         try {
             let products = [];
             if (isMongo) {
-                // Exclude heavy fields from products query to save memory
-                products = await ProductModel.find({}, { images: 0, description: 0, descriptionTj: 0, videoUrl: 0 }).sort({ id: 1 }).lean();
+                // Exclude heavy fields and base64 cover image from query to prevent network/RAM spikes
+                const rawProducts = await ProductModel.find({}, { image: 0, images: 0, description: 0, descriptionTj: 0, videoUrl: 0 }).sort({ id: 1 }).lean();
+                products = rawProducts.map(p => ({
+                    ...p,
+                    image: `/api/products/${p.id}/image`
+                }));
             } else {
                 products = readJSON(PRODUCTS_PATH);
             }
@@ -734,16 +738,13 @@ app.get('/api/products', async (req, res) => {
                 return res.json(cachedLightweightProducts);
             }
             try {
-                // Exclude heavy fields from bulk products list to prevent RAM spikes / OOM crashes
+                // Exclude heavy fields and base64 cover image from query to prevent network/RAM spikes
                 const products = await withTimeout(
-                    ProductModel.find({}, { images: 0, description: 0, descriptionTj: 0, videoUrl: 0 }).sort({ id: 1 }).lean(),
+                    ProductModel.find({}, { image: 0, images: 0, description: 0, descriptionTj: 0, videoUrl: 0 }).sort({ id: 1 }).lean(),
                     4000
                 );
                 const processedProducts = products.map(p => {
-                    if (p.image && p.image.startsWith('data:')) {
-                        return { ...p, image: `/api/products/${p.id}/image` };
-                    }
-                    return p;
+                    return { ...p, image: `/api/products/${p.id}/image` };
                 });
                 cachedLightweightProducts = processedProducts;
                 return res.json(processedProducts);
