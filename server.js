@@ -176,6 +176,14 @@ function syncLocalFilesFallback() {
     }, 5000);
 }
 
+// Helper to enforce a time-limit timeout on MongoDB promises to prevent hanging connections
+function withTimeout(promise, ms = 5000) {
+    const timeout = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database query timed out')), ms);
+    });
+    return Promise.race([promise, timeout]);
+}
+
 // --- DATABASE HYBRID STORAGE SETUP (MongoDB Atlas + Local JSON Fallback) ---
 let isMongo = false;
 
@@ -262,9 +270,11 @@ setInterval(cleanOldTrafficData, 12 * 60 * 60 * 1000);
 // Connection logic
 const MONGODB_URI = process.env.MONGODB_URI;
 
+mongoose.set('bufferCommands', false);
+
 if (MONGODB_URI) {
     console.log('Attempting to connect to MongoDB Cloud Database...');
-    mongoose.connect(MONGODB_URI)
+    mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
         .then(async () => {
             console.log('=================================================');
             console.log('  SUCCESS: Connected to MongoDB Cloud Database!');
@@ -380,6 +390,9 @@ if (MONGODB_URI) {
                 }
                 console.log('=================================================');
             } catch (e) { console.error('Failed to run product size diagnostics Aggregation:', e); }
+            
+            // Sync MongoDB products to local fallback JSON files at startup
+            syncLocalFilesFallback();
         })
         .catch(err => {
             console.error('=================================================');
@@ -720,27 +733,36 @@ app.get('/api/products', async (req, res) => {
             if (cachedLightweightProducts) {
                 return res.json(cachedLightweightProducts);
             }
-            // Exclude heavy fields from bulk products list to prevent RAM spikes / OOM crashes
-            const products = await ProductModel.find({}, { images: 0, description: 0, descriptionTj: 0, videoUrl: 0 }).sort({ id: 1 }).lean();
-            const processedProducts = products.map(p => {
-                if (p.image && p.image.startsWith('data:')) {
-                    return { ...p, image: `/api/products/${p.id}/image` };
-                }
-                return p;
-            });
-            cachedLightweightProducts = processedProducts;
-            res.json(processedProducts);
-        } else {
-            const allProducts = readJSON(PRODUCTS_PATH);
-            const products = allProducts.map(p => {
-                const { images, description, descriptionTj, videoUrl, ...rest } = p;
-                if (rest.image && rest.image.startsWith('data:')) {
-                    rest.image = `/api/products/${p.id}/image`;
-                }
-                return rest;
-            });
-            res.json(products);
+            try {
+                // Exclude heavy fields from bulk products list to prevent RAM spikes / OOM crashes
+                const products = await withTimeout(
+                    ProductModel.find({}, { images: 0, description: 0, descriptionTj: 0, videoUrl: 0 }).sort({ id: 1 }).lean(),
+                    4000
+                );
+                const processedProducts = products.map(p => {
+                    if (p.image && p.image.startsWith('data:')) {
+                        return { ...p, image: `/api/products/${p.id}/image` };
+                    }
+                    return p;
+                });
+                cachedLightweightProducts = processedProducts;
+                return res.json(processedProducts);
+            } catch (mongoErr) {
+                console.error('MongoDB GET /api/products query failed/timed out, falling back to local files:', mongoErr.message);
+                // Continue to local files fallback below
+            }
         }
+        
+        // Local files fallback
+        const allProducts = readJSON(PRODUCTS_PATH);
+        const products = allProducts.map(p => {
+            const { images, description, descriptionTj, videoUrl, ...rest } = p;
+            if (rest.image && rest.image.startsWith('data:')) {
+                rest.image = `/api/products/${p.id}/image`;
+            }
+            return rest;
+        });
+        res.json(products);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -750,41 +772,47 @@ app.get('/api/products/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isMongo) {
-            const product = await ProductModel.findOne({ id }).lean();
-            if (!product) return res.status(404).json({ error: 'Product not found' });
-            
-            const processedProduct = { ...product };
-            if (processedProduct.image && processedProduct.image.startsWith('data:')) {
-                processedProduct.image = `/api/products/${id}/image`;
+            try {
+                const product = await withTimeout(ProductModel.findOne({ id }).lean(), 4000);
+                if (!product) return res.status(404).json({ error: 'Product not found' });
+                
+                const processedProduct = { ...product };
+                if (processedProduct.image && processedProduct.image.startsWith('data:')) {
+                    processedProduct.image = `/api/products/${id}/image`;
+                }
+                if (processedProduct.images && Array.isArray(processedProduct.images)) {
+                    processedProduct.images = processedProduct.images.map((img, i) => {
+                        if (img && img.startsWith('data:')) {
+                            return `/api/products/${id}/images/${i}`;
+                        }
+                        return img;
+                    });
+                }
+                return res.json(processedProduct);
+            } catch (mongoErr) {
+                console.error(`MongoDB GET /api/products/${id} query failed/timed out, falling back to local files:`, mongoErr.message);
+                // Continue to local files fallback below
             }
-            if (processedProduct.images && Array.isArray(processedProduct.images)) {
-                processedProduct.images = processedProduct.images.map((img, i) => {
-                    if (img && img.startsWith('data:')) {
-                        return `/api/products/${id}/images/${i}`;
-                    }
-                    return img;
-                });
-            }
-            res.json(processedProduct);
-        } else {
-            const products = readJSON(PRODUCTS_PATH);
-            const product = products.find(p => p.id === id);
-            if (!product) return res.status(404).json({ error: 'Product not found' });
-            
-            const processedProduct = { ...product };
-            if (processedProduct.image && processedProduct.image.startsWith('data:')) {
-                processedProduct.image = `/api/products/${id}/image`;
-            }
-            if (processedProduct.images && Array.isArray(processedProduct.images)) {
-                processedProduct.images = processedProduct.images.map((img, i) => {
-                    if (img && img.startsWith('data:')) {
-                        return `/api/products/${id}/images/${i}`;
-                    }
-                    return img;
-                });
-            }
-            res.json(processedProduct);
         }
+        
+        // Local files fallback
+        const products = readJSON(PRODUCTS_PATH);
+        const product = products.find(p => p.id === id);
+        if (!product) return res.status(404).json({ error: 'Product not found' });
+        
+        const processedProduct = { ...product };
+        if (processedProduct.image && processedProduct.image.startsWith('data:')) {
+            processedProduct.image = `/api/products/${id}/image`;
+        }
+        if (processedProduct.images && Array.isArray(processedProduct.images)) {
+            processedProduct.images = processedProduct.images.map((img, i) => {
+                if (img && img.startsWith('data:')) {
+                    return `/api/products/${id}/images/${i}`;
+                }
+                return img;
+            });
+        }
+        res.json(processedProduct);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -1048,12 +1076,18 @@ app.post('/api/reviews', async (req, res) => {
 app.get('/api/orders', async (req, res) => {
     try {
         if (isMongo) {
-            const orders = await OrderModel.find().sort({ id: -1 }).lean();
-            res.json(orders);
-        } else {
-            const orders = readJSON(ORDERS_PATH);
-            res.json(orders.reverse());
+            try {
+                const orders = await withTimeout(OrderModel.find().sort({ id: -1 }).lean(), 4000);
+                return res.json(orders);
+            } catch (mongoErr) {
+                console.error('MongoDB GET /api/orders query failed/timed out, falling back to local files:', mongoErr.message);
+                // Continue to local files fallback below
+            }
         }
+        
+        // Local files fallback
+        const orders = readJSON(ORDERS_PATH);
+        res.json(orders.reverse());
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -1228,7 +1262,20 @@ app.get('/api/online-count', (req, res) => {
 app.post('/api/log-visit', async (req, res) => {
     try {
         if (isMongo) {
-            await TrafficModel.create({ timestamp: new Date(), type: 'visit' });
+            try {
+                await withTimeout(TrafficModel.create({ timestamp: new Date(), type: 'visit' }), 3000);
+            } catch (err) {
+                console.error('Failed to log ping to MongoDB, falling back to local files:', err.message);
+                const traffic = readJSON(TRAFFIC_PATH);
+                const now = Date.now();
+                const fortyEightHours = 48 * 60 * 60 * 1000;
+                const filtered = traffic.filter(log => (now - new Date(log.timestamp).getTime()) <= fortyEightHours);
+                filtered.push({
+                    timestamp: new Date().toISOString(),
+                    type: 'visit'
+                });
+                writeJSON(TRAFFIC_PATH, filtered);
+            }
         } else {
             const traffic = readJSON(TRAFFIC_PATH);
             const now = Date.now();
@@ -1266,9 +1313,17 @@ app.get('/api/traffic-stats', async (req, res) => {
         
         let traffic = [];
         if (isMongo) {
-            traffic = await TrafficModel.find({
-                timestamp: { $gte: new Date(now - 24 * oneHour) }
-            }, { timestamp: 1, type: 1, _id: 0 }).lean();
+            try {
+                traffic = await withTimeout(
+                    TrafficModel.find({
+                        timestamp: { $gte: new Date(now - 24 * oneHour) }
+                    }, { timestamp: 1, type: 1, _id: 0 }).lean(),
+                    4000
+                );
+            } catch (mongoErr) {
+                console.error('MongoDB GET /api/traffic-stats query failed/timed out, falling back to local files:', mongoErr.message);
+                traffic = readJSON(TRAFFIC_PATH);
+            }
         } else {
             traffic = readJSON(TRAFFIC_PATH);
         }
@@ -1300,6 +1355,40 @@ app.get('/api/traffic-stats', async (req, res) => {
         res.json(stats);
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+// Database diagnostics API
+app.get('/api/debug-db', async (req, res) => {
+    try {
+        let prodsCount = 0;
+        let categoriesCount = 0;
+        let ordersCount = 0;
+        
+        if (isMongo && mongoose.connection.readyState === 1) {
+            prodsCount = await ProductModel.countDocuments();
+            categoriesCount = await CategoryModel.countDocuments();
+            ordersCount = await OrderModel.countDocuments();
+        } else {
+            prodsCount = readJSON(PRODUCTS_PATH).length;
+            categoriesCount = readJSON(CATEGORIES_PATH).length;
+            ordersCount = readJSON(ORDERS_PATH).length;
+        }
+
+        res.json({
+            isMongo,
+            readyState: mongoose.connection.readyState,
+            hasUri: !!process.env.MONGODB_URI,
+            products: prodsCount,
+            categories: categoriesCount,
+            orders: ordersCount
+        });
+    } catch (err) {
+        res.json({
+            error: err.message,
+            isMongo,
+            readyState: mongoose.connection.readyState
+        });
     }
 });
 
