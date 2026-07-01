@@ -929,6 +929,31 @@ app.put('/api/products/:id', async (req, res) => {
     }
 });
 
+app.delete('/api/products-clear-catalog', async (req, res) => {
+    try {
+        const { passcode } = req.query;
+        if (passcode !== 'admin123') {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        
+        if (isMongo) {
+            const result = await ProductModel.deleteMany({ id: { $gte: 125 } });
+            cachedLightweightProducts = null;
+            syncLocalFilesFallback();
+            res.json({ success: true, message: `Deleted ${result.deletedCount} products from MongoDB` });
+        } else {
+            let products = readJSON(PRODUCTS_PATH);
+            const countBefore = products.length;
+            products = products.filter(p => p.id < 125);
+            writeJSON(PRODUCTS_PATH, products);
+            syncProductsJS(products);
+            res.json({ success: true, message: `Deleted ${countBefore - products.length} products locally` });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.delete('/api/products/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
