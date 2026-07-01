@@ -161,19 +161,18 @@ function syncLocalFilesFallback() {
         try {
             let products = [];
             if (isMongo) {
-                // Exclude heavy fields and base64 cover image from query to prevent network/RAM spikes
-                const rawProducts = await ProductModel.find({}, { image: 0, images: 0, description: 0, descriptionTj: 0, videoUrl: 0 }).sort({ id: 1 }).lean();
-                products = rawProducts.map(p => ({
-                    ...p,
-                    image: `/api/products/${p.id}/image`
-                }));
+                // Fetch the full product documents to preserve descriptions and gallery images in products.json
+                products = await ProductModel.find({}).sort({ id: 1 }).lean();
             } else {
                 products = readJSON(PRODUCTS_PATH);
             }
+            // Save the lossless full products array to products.json backup
+            writeJSON(PRODUCTS_PATH, products);
+            
+            // Sync lightweight products to products.js for backward-compatible frontend consumption
             const lightweight = getLightweightProducts(products);
-            writeJSON(PRODUCTS_PATH, lightweight);
             fs.writeFileSync(PRODUCTS_JS_PATH, `const products = ${JSON.stringify(lightweight, null, 2)};`);
-            console.log('Successfully synced products to local fallback files (debounced).');
+            console.log('Successfully synced products to local fallback files (lossless).');
         } catch (err) {
             console.error('Failed to sync local fallback files:', err.message);
         }
