@@ -277,133 +277,149 @@ mongoose.set('bufferCommands', false);
 
 if (MONGODB_URI) {
     console.log('Attempting to connect to MongoDB Cloud Database...');
-    mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
-        .then(async () => {
-            console.log('=================================================');
-            console.log('  SUCCESS: Connected to MongoDB Cloud Database!');
-            console.log('=================================================');
-            isMongo = true;
-
-            // 1. Sync Categories from JSON if empty
+    
+    async function connectWithRetry() {
+        const maxAttempts = 5;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-                const count = await CategoryModel.countDocuments();
-                if (count === 0) {
-                    const defaultCats = readJSON(CATEGORIES_PATH);
-                    if (defaultCats.length > 0) {
-                        await CategoryModel.insertMany(defaultCats);
-                        console.log('Categories successfully seeded to MongoDB Cloud.');
+                console.log(`Connecting to MongoDB (Attempt ${attempt}/${maxAttempts})...`);
+                await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 15000 });
+                
+                console.log('=================================================');
+                console.log('  SUCCESS: Connected to MongoDB Cloud Database!');
+                console.log('=================================================');
+                isMongo = true;
+
+                // 1. Sync Categories from JSON if empty
+                try {
+                    const count = await CategoryModel.countDocuments();
+                    if (count === 0) {
+                        const defaultCats = readJSON(CATEGORIES_PATH);
+                        if (defaultCats.length > 0) {
+                            await CategoryModel.insertMany(defaultCats);
+                            console.log('Categories successfully seeded to MongoDB Cloud.');
+                        }
+                    } else {
+                        console.log('Categories collection already populated. Skipping seed.');
                     }
-                } else {
-                    console.log('Categories collection already populated. Skipping seed.');
-                }
-            } catch (e) { console.error('Failed to seed categories:', e); }
+                } catch (e) { console.error('Failed to seed categories:', e); }
 
-            // 2. Sync Products from JSON if empty
-            try {
-                const count = await ProductModel.countDocuments();
-                if (count === 0) {
-                    const defaultProds = readJSON(PRODUCTS_PATH);
-                    if (defaultProds.length > 0) {
-                        await ProductModel.insertMany(defaultProds);
-                        console.log('Products successfully seeded to MongoDB Cloud.');
+                // 2. Sync Products from JSON if empty
+                try {
+                    const count = await ProductModel.countDocuments();
+                    if (count === 0) {
+                        const defaultProds = readJSON(PRODUCTS_PATH);
+                        if (defaultProds.length > 0) {
+                            await ProductModel.insertMany(defaultProds);
+                            console.log('Products successfully seeded to MongoDB Cloud.');
+                        }
+                    } else {
+                        console.log('Products collection already populated. Skipping seed.');
                     }
-                } else {
-                    console.log('Products collection already populated. Skipping seed.');
+                } catch (e) { console.error('Failed to seed products:', e); }
+
+                // 3. Auto-seed Settings from JSON if empty
+                try {
+                    const count = await SettingsModel.countDocuments();
+                    if (count === 0) {
+                        const defaultSettings = readJSON(SETTINGS_PATH, { passcode: 'admin123', telegramChatId: '' });
+                        await SettingsModel.create({ key: 'main', ...defaultSettings });
+                        console.log('Seeded default settings configuration to MongoDB.');
+                    }
+                } catch (e) { console.error('Failed to seed settings:', e); }
+
+                // 4. Clean up old traffic stats
+                try {
+                    await cleanOldTrafficData();
+                } catch (e) { console.error('Failed to perform initial traffic cleanup:', e); }
+
+                // 6. One-time deletion of seeded default products (ID <= 117)
+                try {
+                    const deleteResult = await ProductModel.deleteMany({ id: { $lte: 117 } });
+                    if (deleteResult.deletedCount > 0) {
+                        console.log(`Successfully deleted ${deleteResult.deletedCount} default seeded products from MongoDB.`);
+                        // Invalidate cache
+                        cachedLightweightProducts = null;
+                        // Sync local fallback files
+                        syncLocalFilesFallback();
+                    }
+                } catch (e) {
+                    console.error('Failed to delete default products:', e);
                 }
-            } catch (e) { console.error('Failed to seed products:', e); }
 
-            // 3. Auto-seed Settings from JSON if empty
-            try {
-                const count = await SettingsModel.countDocuments();
-                if (count === 0) {
-                    const defaultSettings = readJSON(SETTINGS_PATH, { passcode: 'admin123', telegramChatId: '' });
-                    await SettingsModel.create({ key: 'main', ...defaultSettings });
-                    console.log('Seeded default settings configuration to MongoDB.');
-                }
-            } catch (e) { console.error('Failed to seed settings:', e); }
-
-            // 4. Clean up old traffic stats
-            try {
-                await cleanOldTrafficData();
-            } catch (e) { console.error('Failed to perform initial traffic cleanup:', e); }
-
-            // 6. One-time deletion of seeded default products (ID <= 117)
-            try {
-                const deleteResult = await ProductModel.deleteMany({ id: { $lte: 117 } });
-                if (deleteResult.deletedCount > 0) {
-                    console.log(`Successfully deleted ${deleteResult.deletedCount} default seeded products from MongoDB.`);
-                    // Invalidate cache
-                    cachedLightweightProducts = null;
-                    // Sync local fallback files
-                    syncLocalFilesFallback();
-                }
-            } catch (e) {
-                console.error('Failed to delete default products:', e);
-            }
-
-            // 5. Measure product data sizes in MongoDB using aggregation database-side (prevents server RAM OOM)
-            try {
-                const totalCount = await ProductModel.countDocuments();
-                const oversizedProds = await ProductModel.aggregate([
-                    {
-                        $project: {
-                            id: 1,
-                            name: 1,
-                            imageSize: { $strLenCP: { $ifNull: ["$image", ""] } },
-                            imagesSize: {
-                                $cond: {
-                                    if: { $isArray: "$images" },
-                                    then: {
-                                        $reduce: {
-                                            input: "$images",
-                                            initialValue: 0,
-                                            in: { $add: ["$$value", { $strLenCP: { $ifNull: ["$$this", ""] } }] }
-                                        }
-                                    },
-                                    else: 0
+                // 5. Measure product data sizes in MongoDB using aggregation database-side (prevents server RAM OOM)
+                try {
+                    const totalCount = await ProductModel.countDocuments();
+                    const oversizedProds = await ProductModel.aggregate([
+                        {
+                            $project: {
+                                id: 1,
+                                name: 1,
+                                imageSize: { $strLenCP: { $ifNull: ["$image", ""] } },
+                                imagesSize: {
+                                    $cond: {
+                                        if: { $isArray: "$images" },
+                                        then: {
+                                            $reduce: {
+                                                input: "$images",
+                                                initialValue: 0,
+                                                in: { $add: ["$$value", { $strLenCP: { $ifNull: ["$$this", ""] } }] }
+                                            }
+                                        },
+                                        else: 0
+                                    }
                                 }
                             }
+                        },
+                        {
+                            $project: {
+                                id: 1,
+                                name: 1,
+                                totalSizeKB: { $round: [ { $divide: [ { $add: ["$imageSize", "$imagesSize"] }, 1024 ] }, 0 ] }
+                            }
+                        },
+                        {
+                            $match: {
+                                totalSizeKB: { $gt: 200 }
+                            }
                         }
-                    },
-                    {
-                        $project: {
-                            id: 1,
-                            name: 1,
-                            totalSizeKB: { $round: [ { $divide: [ { $add: ["$imageSize", "$imagesSize"] }, 1024 ] }, 0 ] }
-                        }
-                    },
-                    {
-                        $match: {
-                            totalSizeKB: { $gt: 200 }
-                        }
-                    }
-                ]);
+                    ]);
 
-                console.log('=================================================');
-                console.log(`  Database Diagnostics:`);
-                console.log(`  Total Products in MongoDB: ${totalCount}`);
-                if (oversizedProds.length > 0) {
-                    console.log(`  WARNING: Found ${oversizedProds.length} oversized products (over 200KB):`);
-                    oversizedProds.forEach(op => {
-                        console.log(`    - Product #${op.id} "${op.name}": ~${op.totalSizeKB} KB`);
-                    });
-                    console.log(`  Recommendation: Re-upload photos for these products in the Admin Panel to compress them.`);
-                } else {
-                    console.log(`  All products are under 200KB. Database size is optimal.`);
+                    console.log('=================================================');
+                    console.log(`  Database Diagnostics:`);
+                    console.log(`  Total Products in MongoDB: ${totalCount}`);
+                    if (oversizedProds.length > 0) {
+                        console.log(`  WARNING: Found ${oversizedProds.length} oversized products (over 200KB):`);
+                        oversizedProds.forEach(op => {
+                            console.log(`    - Product #${op.id} "${op.name}": ~${op.totalSizeKB} KB`);
+                        });
+                        console.log(`  Recommendation: Re-upload photos for these products in the Admin Panel to compress them.`);
+                    } else {
+                        console.log(`  All products are under 200KB. Database size is optimal.`);
+                    }
+                    console.log('=================================================');
+                } catch (e) { console.error('Failed to run product size diagnostics Aggregation:', e); }
+                
+                // Sync MongoDB products to local fallback JSON files at startup
+                syncLocalFilesFallback();
+                return;
+            } catch (err) {
+                console.error(`MongoDB connection attempt ${attempt}/${maxAttempts} failed:`, err.message);
+                if (attempt < maxAttempts) {
+                    console.log('Waiting 6 seconds before retrying...');
+                    await new Promise(resolve => setTimeout(resolve, 6000));
                 }
-                console.log('=================================================');
-            } catch (e) { console.error('Failed to run product size diagnostics Aggregation:', e); }
-            
-            // Sync MongoDB products to local fallback JSON files at startup
-            syncLocalFilesFallback();
-        })
-        .catch(err => {
-            console.error('=================================================');
-            console.error('  ERROR: MongoDB connection failed.');
-            console.error('  Falling back to Local JSON Files Storage.');
-            console.error('=================================================');
-            isMongo = false;
-        });
+            }
+        }
+        
+        console.error('=================================================');
+        console.error('  ERROR: All MongoDB connection attempts failed.');
+        console.error('  Falling back to Local JSON Files Storage.');
+        console.error('=================================================');
+        isMongo = false;
+    }
+    
+    connectWithRetry();
 } else {
     console.log('No MONGODB_URI provided in environment variables.');
     console.log('Running server with Local JSON Files Database fallback.');
