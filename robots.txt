@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /catalog.html
+Disallow: /admin.html
+Disallow: /data/
+Disallow: /api/
+
+Sitemap: https://paymona.tj/sitemap.xml
