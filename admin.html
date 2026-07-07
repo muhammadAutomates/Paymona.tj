@@ -1140,6 +1140,7 @@
         }
 
         function renderProductsTable(list) {
+            const scrollPos = window.scrollY;
             const tableBody = document.getElementById('adminProductsTableBody');
             tableBody.innerHTML = '';
             
@@ -1150,7 +1151,7 @@
                 let discSticker = 'Нет';
                 if (p.oldPrice && p.price < p.oldPrice) {
                     const discPercent = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
-                    discSticker = `<span class="status-badge new">-${discPercent}%</span>`;
+                    discSticker = `<span class="status-badge new font-bold">-${discPercent}%</span>`;
                 }
                 
                 // Status badge setup
@@ -1176,6 +1177,8 @@
                 `;
                 tableBody.appendChild(tr);
             });
+            
+            window.scrollTo(0, scrollPos);
         }
 
         // Search trigger products in grid
