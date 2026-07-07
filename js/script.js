@@ -872,7 +872,8 @@ async function openProductDetailModal(id) {
     galleryWrap.style.cursor = 'zoom-in';
     galleryWrap.addEventListener('click', () => {
         if (currentActiveMedia) {
-            openFullscreenLightbox(currentActiveMedia);
+            const idx = mediaList.indexOf(currentActiveMedia);
+            openFullscreenLightbox(mediaList, idx >= 0 ? idx : 0);
         }
     });
     
@@ -1360,7 +1361,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- FULLSCREEN LIGHTBOX OVERLAY ---
-function openFullscreenLightbox(media) {
+function openFullscreenLightbox(mediaList, startIndex) {
+    if (!mediaList || mediaList.length === 0) return;
+    
+    let currentIndex = startIndex;
+    
     const overlay = document.createElement('div');
     overlay.className = 'lightbox-overlay';
     
@@ -1372,24 +1377,69 @@ function openFullscreenLightbox(media) {
     const content = document.createElement('div');
     content.className = 'lightbox-content';
     
-    if (media.type === 'video') {
-        if (media.url.includes('youtube.com') || media.url.includes('youtu.be')) {
-            let yId = '';
-            if (media.url.includes('youtube.com/watch')) {
-                yId = new URL(media.url).searchParams.get('v');
-            } else {
-                yId = media.url.split('/').pop();
-            }
-            content.innerHTML = `<iframe src="https://www.youtube.com/embed/${yId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-        } else {
-            content.innerHTML = `<video src="${media.url}" controls autoplay></video>`;
-        }
-    } else {
-        content.innerHTML = `<img src="${media.url}" alt="Fullscreen product image">`;
-    }
-    
     overlay.appendChild(content);
     overlay.appendChild(closeBtn);
+    
+    // Create navigation buttons if more than one item
+    let prevBtn, nextBtn;
+    if (mediaList.length > 1) {
+        prevBtn = document.createElement('button');
+        prevBtn.className = 'lightbox-nav prev-btn';
+        prevBtn.innerHTML = '<i class="ph ph-caret-left"></i>';
+        
+        nextBtn = document.createElement('button');
+        nextBtn.className = 'lightbox-nav next-btn';
+        nextBtn.innerHTML = '<i class="ph ph-caret-right"></i>';
+        
+        overlay.appendChild(prevBtn);
+        overlay.appendChild(nextBtn);
+        
+        // Navigation events
+        prevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showMedia(currentIndex - 1);
+        });
+        nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showMedia(currentIndex + 1);
+        });
+    }
+    
+    function showMedia(index) {
+        if (mediaList.length === 0) return;
+        
+        // Circular loop index
+        if (index < 0) {
+            currentIndex = mediaList.length - 1;
+        } else if (index >= mediaList.length) {
+            currentIndex = 0;
+        } else {
+            currentIndex = index;
+        }
+        
+        const media = mediaList[currentIndex];
+        content.innerHTML = '';
+        
+        if (media.type === 'video') {
+            if (media.url.includes('youtube.com') || media.url.includes('youtu.be')) {
+                let yId = '';
+                if (media.url.includes('youtube.com/watch')) {
+                    yId = new URL(media.url).searchParams.get('v');
+                } else {
+                    yId = media.url.split('/').pop();
+                }
+                content.innerHTML = `<iframe src="https://www.youtube.com/embed/${yId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+            } else {
+                content.innerHTML = `<video src="${media.url}" controls autoplay></video>`;
+            }
+        } else {
+            content.innerHTML = `<img src="${media.url}" alt="Fullscreen product image">`;
+        }
+    }
+    
+    // Initial display
+    showMedia(currentIndex);
+    
     document.body.appendChild(overlay);
     
     setTimeout(() => {
@@ -1410,11 +1460,43 @@ function openFullscreenLightbox(media) {
         }
     });
     
-    const escHandler = (e) => {
+    // Keyboard navigation
+    const keyHandler = (e) => {
         if (e.key === 'Escape') {
             closeLightbox();
-            document.removeEventListener('keydown', escHandler);
+            document.removeEventListener('keydown', keyHandler);
+        } else if (e.key === 'ArrowLeft' && mediaList.length > 1) {
+            showMedia(currentIndex - 1);
+        } else if (e.key === 'ArrowRight' && mediaList.length > 1) {
+            showMedia(currentIndex + 1);
         }
     };
-    document.addEventListener('keydown', escHandler);
+    document.addEventListener('keydown', keyHandler);
+    
+    // Swipe gestures support
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    overlay.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    overlay.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipeGesture();
+    }, { passive: true });
+    
+    function handleSwipeGesture() {
+        const threshold = 50; // min distance in px
+        const diff = touchEndX - touchStartX;
+        if (Math.abs(diff) > threshold && mediaList.length > 1) {
+            if (diff > 0) {
+                // Swipe right -> previous image
+                showMedia(currentIndex - 1);
+            } else {
+                // Swipe left -> next image
+                showMedia(currentIndex + 1);
+            }
+        }
+    }
 }
