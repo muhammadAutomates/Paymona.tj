@@ -69,8 +69,8 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ limit: '25mb', extended: true }));
 
 // Serve static assets in storefront and css/js
 app.use(express.static(__dirname, {
@@ -161,18 +161,21 @@ function syncLocalFilesFallback() {
         try {
             let products = [];
             if (isMongo) {
-                // Fetch the full product documents to preserve descriptions and gallery images in products.json
-                products = await ProductModel.find({}).sort({ id: 1 }).lean();
+                // IMPORTANT: Exclude large base64 image/video fields to prevent OOM.
+                // Images are served directly from MongoDB via /api/products/:id/image.
+                products = await ProductModel.find({}).sort({ id: 1 })
+                    .select('-image -images -videoUrl')
+                    .lean();
             } else {
                 products = readJSON(PRODUCTS_PATH);
             }
-            // Save the lossless full products array to products.json backup
+            // Save products.json backup (without image data to avoid huge file sizes)
             writeJSON(PRODUCTS_PATH, products);
             
             // Sync lightweight products to products.js for backward-compatible frontend consumption
             const lightweight = getLightweightProducts(products);
             fs.writeFileSync(PRODUCTS_JS_PATH, `const products = ${JSON.stringify(lightweight, null, 2)};`);
-            console.log('Successfully synced products to local fallback files (lossless).');
+            console.log(`Successfully synced ${products.length} products to local fallback files.`);
         } catch (err) {
             console.error('Failed to sync local fallback files:', err.message);
         }
