@@ -1121,7 +1121,6 @@
             const tableBody = document.getElementById('adminProductsTableBody');
             if(!tableBody) return;
             
-            tableBody.innerHTML = '';
             try {
                 const res = await fetch('/api/products');
                 if(res.ok) {
