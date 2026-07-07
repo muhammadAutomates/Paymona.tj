@@ -370,6 +370,7 @@
                         <table class="admin-table">
                             <thead>
                                 <tr>
+                                    <th style="width: 40px; text-align: center;"><input type="checkbox" id="bulkSelectAllProducts" style="width: 18px; height: 18px; cursor: pointer;"></th>
                                     <th>ID</th>
                                     <th>Фото</th>
                                     <th>Название</th>
@@ -695,6 +696,24 @@
                     <button type="submit" class="btn btn-primary" id="saveProductFormBtn" style="padding: 10px 24px;">Сохранить</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Floating Bulk Actions Bar -->
+    <div id="bulkActionsBar" class="bulk-actions-bar">
+        <div class="bulk-actions-info">
+            Выбрано товаров: <span id="bulkSelectedCount">0</span>
+        </div>
+        <div class="bulk-actions-btns">
+            <button class="btn btn-outline" onclick="bulkSetStatus(true)" style="padding: 8px 16px; font-size: 0.85rem; background: rgba(255,255,255,0.08);">
+                <i class="ph ph-eye"></i> В продажу
+            </button>
+            <button class="btn btn-outline" onclick="bulkSetStatus(false)" style="padding: 8px 16px; font-size: 0.85rem; background: rgba(255,255,255,0.08);">
+                <i class="ph ph-eye-slash"></i> Скрыть
+            </button>
+            <button class="btn btn-primary" onclick="bulkDelete()" style="padding: 8px 18px; font-size: 0.85rem; background-color: var(--brand-red);">
+                <i class="ph ph-trash"></i> Удалить
+            </button>
         </div>
     </div>
 
@@ -1140,6 +1159,14 @@
 
         function renderProductsTable(list) {
             const scrollPos = window.scrollY;
+            
+            // Uncheck select-all checkbox before redraw
+            const masterCheckbox = document.getElementById('bulkSelectAllProducts');
+            if (masterCheckbox) {
+                masterCheckbox.checked = false;
+                masterCheckbox.indeterminate = false;
+            }
+            
             const tableBody = document.getElementById('adminProductsTableBody');
             tableBody.innerHTML = '';
             
@@ -1162,6 +1189,7 @@
                 `;
                 
                 tr.innerHTML = `
+                    <td style="text-align: center;"><input type="checkbox" class="product-bulk-checkbox" data-id="${p.id}" style="width: 18px; height: 18px; cursor: pointer;" onchange="updateBulkActionBar()"></td>
                     <td>${p.id}</td>
                     <td><img src="${p.image}" alt="${p.name}" style="width: 50px; height: 50px; object-fit: contain; background: var(--bg-alt); border-radius: 6px; padding: 4px;"></td>
                     <td><b>${p.name}</b></td>
@@ -1177,6 +1205,9 @@
                 tableBody.appendChild(tr);
             });
             
+            // Reset bulk floating actions bar visibility
+            updateBulkActionBar();
+            
             window.scrollTo(0, scrollPos);
         }
 
@@ -1186,6 +1217,99 @@
             const filtered = adminProducts.filter(p => p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
             renderProductsTable(filtered);
         });
+
+        // --- BULK OPERATIONS FOR PRODUCTS ---
+        function getSelectedProductIds() {
+            const checkboxes = document.querySelectorAll('.product-bulk-checkbox:checked');
+            return Array.from(checkboxes).map(cb => cb.dataset.id);
+        }
+
+        function updateBulkActionBar() {
+            const selectedIds = getSelectedProductIds();
+            const bar = document.getElementById('bulkActionsBar');
+            const countEl = document.getElementById('bulkSelectedCount');
+            
+            if (bar && countEl) {
+                countEl.textContent = selectedIds.length;
+                if (selectedIds.length > 0) {
+                    bar.classList.add('active');
+                } else {
+                    bar.classList.remove('active');
+                }
+            }
+            
+            // Update master checkbox state
+            const allCheckboxes = document.querySelectorAll('.product-bulk-checkbox');
+            const masterCheckbox = document.getElementById('bulkSelectAllProducts');
+            if (masterCheckbox && allCheckboxes.length > 0) {
+                const checkedCount = selectedIds.length;
+                masterCheckbox.checked = (checkedCount === allCheckboxes.length);
+                masterCheckbox.indeterminate = (checkedCount > 0 && checkedCount < allCheckboxes.length);
+            }
+        }
+
+        // Master checkbox binding
+        document.getElementById('bulkSelectAllProducts')?.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            document.querySelectorAll('.product-bulk-checkbox').forEach(cb => {
+                cb.checked = isChecked;
+            });
+            updateBulkActionBar();
+        });
+
+        async function bulkSetStatus(isActive) {
+            const ids = getSelectedProductIds();
+            if (ids.length === 0) return;
+            
+            const message = isActive 
+                ? `Вы уверены, что хотите вернуть в продажу ${ids.length} выбранных товаров?`
+                : `Вы уверены, что хотите скрыть из продажи ${ids.length} выбранных товаров?`;
+                
+            if (!confirm(message)) return;
+            
+            try {
+                const res = await fetch('/api/products/bulk-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids, isActive })
+                });
+                
+                if (res.ok) {
+                    loadProductsList();
+                } else {
+                    const err = await res.json();
+                    alert(err.error || 'Ошибка при изменении статуса товаров');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка соединения с сервером');
+            }
+        }
+
+        async function bulkDelete() {
+            const ids = getSelectedProductIds();
+            if (ids.length === 0) return;
+            
+            if (!confirm(`Вы действительно хотите БЕЗВОЗВРАТНО удалить ${ids.length} выбранных товаров?`)) return;
+            
+            try {
+                const res = await fetch('/api/products/bulk-delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids })
+                });
+                
+                if (res.ok) {
+                    loadProductsList();
+                } else {
+                    const err = await res.json();
+                    alert(err.error || 'Ошибка при удалении товаров');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка соединения с сервером');
+            }
+        }
 
         // Delete Product API
         async function deleteProduct(id) {

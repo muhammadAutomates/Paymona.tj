@@ -978,6 +978,63 @@ app.delete('/api/products-clear-catalog', async (req, res) => {
     }
 });
 
+// Bulk status update
+app.post('/api/products/bulk-status', async (req, res) => {
+    try {
+        const { ids, isActive } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: 'Invalid or empty product IDs array' });
+        }
+        
+        const numericIds = ids.map(id => parseInt(id)).filter(id => !isNaN(id));
+        
+        if (isMongo) {
+            await ProductModel.updateMany({ id: { $in: numericIds } }, { $set: { isActive: !!isActive } });
+            cachedLightweightProducts = null;
+            syncLocalFilesFallback();
+        } else {
+            let products = readJSON(PRODUCTS_PATH);
+            products = products.map(p => {
+                if (numericIds.includes(p.id)) {
+                    return { ...p, isActive: !!isActive };
+                }
+                return p;
+            });
+            writeJSON(PRODUCTS_PATH, products);
+            syncProductsJS(products);
+        }
+        res.json({ success: true, message: `Successfully updated status for ${numericIds.length} products` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Bulk delete
+app.post('/api/products/bulk-delete', async (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: 'Invalid or empty product IDs array' });
+        }
+        
+        const numericIds = ids.map(id => parseInt(id)).filter(id => !isNaN(id));
+        
+        if (isMongo) {
+            await ProductModel.deleteMany({ id: { $in: numericIds } });
+            cachedLightweightProducts = null;
+            syncLocalFilesFallback();
+        } else {
+            let products = readJSON(PRODUCTS_PATH);
+            products = products.filter(p => !numericIds.includes(p.id));
+            writeJSON(PRODUCTS_PATH, products);
+            syncProductsJS(products);
+        }
+        res.json({ success: true, message: `Successfully deleted ${numericIds.length} products` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.delete('/api/products/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);

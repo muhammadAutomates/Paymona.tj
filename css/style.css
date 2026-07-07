@@ -3159,3 +3159,77 @@ textarea.form-input {
         grid-column: span 2 !important;
     }
 }
+
+/* --- FLOATING BULK ACTIONS BAR --- */
+.bulk-actions-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(150%);
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 14px 28px;
+    border-radius: 50px; /* pill shape */
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+    opacity: 0;
+    pointer-events: none;
+    color: white;
+}
+.bulk-actions-bar.active {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+.bulk-actions-info {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+.bulk-actions-info span {
+    color: var(--brand-red);
+    font-size: 1.1rem;
+    margin-left: 4px;
+}
+.bulk-actions-btns {
+    display: flex;
+    gap: 10px;
+}
+.bulk-actions-btns .btn {
+    border-radius: 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.bulk-actions-btns .btn-outline {
+    color: white !important;
+}
+.bulk-actions-btns .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+@media(max-width: 768px) {
+    .bulk-actions-bar {
+        width: calc(100% - 32px);
+        border-radius: var(--radius-lg);
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+        bottom: 16px;
+    }
+    .bulk-actions-btns {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .bulk-actions-btns .btn {
+        flex: 1;
+        justify-content: center;
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+}
