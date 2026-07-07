@@ -136,7 +136,7 @@ function writeJSON(filePath, data) {
 function getLightweightProducts(products) {
     return products.map(p => {
         const obj = p.toObject ? p.toObject() : p;
-        const { images, description, descriptionTj, videoUrl, ...rest } = obj;
+        const { images, description, descriptionTj, characteristics, characteristicsTj, videoUrl, ...rest } = obj;
         return rest;
     });
 }
@@ -206,7 +206,9 @@ const ProductSchema = new mongoose.Schema({
     sizePrices: { type: mongoose.Schema.Types.Mixed, default: {} },
     isActive: { type: Boolean, default: true },
     description: String,
-    descriptionTj: String
+    descriptionTj: String,
+    characteristics: String,
+    characteristicsTj: String
 });
 
 const CategorySchema = new mongoose.Schema({
@@ -757,7 +759,7 @@ app.get('/api/products', async (req, res) => {
             try {
                 // Exclude heavy fields and base64 cover image from query to prevent network/RAM spikes
                 const products = await withTimeout(
-                    ProductModel.find({}, { image: 0, images: 0, description: 0, descriptionTj: 0, videoUrl: 0 }).sort({ id: 1 }).lean(),
+                    ProductModel.find({}, { image: 0, images: 0, description: 0, descriptionTj: 0, characteristics: 0, characteristicsTj: 0, videoUrl: 0 }).sort({ id: 1 }).lean(),
                     4000
                 );
                 const processedProducts = products.map(p => {
@@ -774,7 +776,7 @@ app.get('/api/products', async (req, res) => {
         // Local files fallback
         const allProducts = readJSON(PRODUCTS_PATH);
         const products = allProducts.map(p => {
-            const { images, description, descriptionTj, videoUrl, ...rest } = p;
+            const { images, description, descriptionTj, characteristics, characteristicsTj, videoUrl, ...rest } = p;
             if (rest.image && rest.image.startsWith('data:')) {
                 rest.image = `/api/products/${p.id}/image`;
             }
@@ -847,6 +849,8 @@ app.post('/api/products', async (req, res) => {
         if (newProduct.isActive === undefined) newProduct.isActive = true;
         if (!newProduct.description) newProduct.description = '';
         if (!newProduct.descriptionTj) newProduct.descriptionTj = '';
+        if (!newProduct.characteristics) newProduct.characteristics = '';
+        if (!newProduct.characteristicsTj) newProduct.characteristicsTj = '';
         if (!newProduct.videoUrl) newProduct.videoUrl = '';
         if (!newProduct.badge) newProduct.badge = null;
         

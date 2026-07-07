@@ -21,7 +21,8 @@ const i18n = {
         review_name: "Ваше имя", review_text: "Комментарий", review_submit: "Отправить отзыв",
         no_results: "Товары не найдены", filter_all: "Все",
         added_to_cart: "Товар добавлен!", order_success: "Заказ оформлен! Менеджер свяжется с вами.",
-        fields_required: "Пожалуйста, выберите цвет и размер!"
+        fields_required: "Пожалуйста, выберите цвет и размер!",
+        desc_title: "Описание", char_title: "Характеристики"
     },
     tj: {
         nav_home: "Асосӣ", nav_catalog: "Каталог", nav_about: "Дар бораи мо", nav_contact: "Тамос",
@@ -42,7 +43,8 @@ const i18n = {
         review_name: "Номи шумо", review_text: "Шарҳ", review_submit: "Фиристодани фикр",
         no_results: "Маҳсулот ёфт нашуд", filter_all: "Ҳама",
         added_to_cart: "Маҳсулот илова шуд!", order_success: "Фармоиш қабул шуд! Менеҷер бо шумо тамос мегирад.",
-        fields_required: "Лутфан ранг ва андозаро интихоб кунед!"
+        fields_required: "Лутфан ранг ва андозаро интихоб кунед!",
+        desc_title: "Тавсиф", char_title: "Хусусиятҳо"
     },
     en: {
         nav_home: "Home", nav_catalog: "Catalog", nav_about: "About Us", nav_contact: "Contact",
@@ -63,7 +65,8 @@ const i18n = {
         review_name: "Your Name", review_text: "Comment", review_submit: "Submit Review",
         no_results: "No products found", filter_all: "All",
         added_to_cart: "Added to cart!", order_success: "Order placed! Manager will contact you shortly.",
-        fields_required: "Please select color and size!"
+        fields_required: "Please select color and size!",
+        desc_title: "Description", char_title: "Characteristics"
     }
 };
 
@@ -744,6 +747,10 @@ async function openProductDetailModal(id) {
     
     // Set loading placeholders
     document.getElementById('detailDesc').textContent = 'Загрузка описания...';
+    const detailCharEl = document.getElementById('detailChar');
+    if (detailCharEl) detailCharEl.textContent = 'Загрузка характеристик...';
+    const detailCharGroup = document.getElementById('detailCharGroup');
+    if (detailCharGroup) detailCharGroup.style.display = 'none';
     let galleryWrap = document.getElementById('detailMainImgWrap');
     galleryWrap.innerHTML = `<img src="${basicProduct.image}" alt="Product image" style="max-width:100%; max-height:100%; object-fit:contain; pointer-events: none;">`;
     const thumbsWrap = document.getElementById('detailThumbs');
@@ -784,15 +791,29 @@ async function openProductDetailModal(id) {
     activeSelectedColor = '';
     activeSelectedSize = '';
     
-    // Update description
+    // Update description and characteristics
     const lang = getCurrentLang();
     let descText = '';
+    let charText = '';
     if (lang === 'tj') {
-        descText = p.descriptionTj || p.description; // Fallback to Russian if TJ is empty
+        descText = p.descriptionTj || p.description || '';
+        charText = p.characteristicsTj || p.characteristics || '';
     } else {
-        descText = p.description;
+        descText = p.description || '';
+        charText = p.characteristics || '';
     }
+    
     document.getElementById('detailDesc').textContent = descText || (lang === 'tj' ? 'Интихоби олӣ барои хонаи шумо. Сифати боэътимод ва пойдории кафолатдодашуда.' : 'Изысканный выбор для вашего дома. Высокая практичность и гарантированная долговечность.');
+    
+    if (detailCharEl) {
+        if (charText) {
+            detailCharEl.textContent = charText;
+            if (detailCharGroup) detailCharGroup.style.display = 'block';
+        } else {
+            detailCharEl.textContent = '';
+            if (detailCharGroup) detailCharGroup.style.display = 'none';
+        }
+    }
     
     // Clone galleryWrap to clean up previous event listeners
     if (galleryWrap) {

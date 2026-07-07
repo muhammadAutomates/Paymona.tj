@@ -675,11 +675,19 @@
 
                     <div class="admin-form-group col-span-2">
                         <label class="admin-form-label">Описание товара (на русском)</label>
-                        <textarea id="formProductDescription" class="admin-form-input" placeholder="Подробная информация о товаре, характеристиках..."></textarea>
+                        <textarea id="formProductDescription" class="admin-form-input" placeholder="Подробная информация о товаре..."></textarea>
                     </div>
                     <div class="admin-form-group col-span-2">
                         <label class="admin-form-label">Описание товара (на таджикском)</label>
-                        <textarea id="formProductDescriptionTj" class="admin-form-input" placeholder="Маълумоти муфассал дар бораи маҳсулот, хусусиятҳо..."></textarea>
+                        <textarea id="formProductDescriptionTj" class="admin-form-input" placeholder="Маълумоти муфассал дар бораи маҳсулот..."></textarea>
+                    </div>
+                    <div class="admin-form-group col-span-2">
+                        <label class="admin-form-label">Характеристики товара (на русском)</label>
+                        <textarea id="formProductCharacteristics" class="admin-form-input" placeholder="Характеристики товара (напр: Мощность: 2000 Вт, Объем: 2 л)..." style="height: 100px;"></textarea>
+                    </div>
+                    <div class="admin-form-group col-span-2">
+                        <label class="admin-form-label">Характеристики товара (на таджикском)</label>
+                        <textarea id="formProductCharacteristicsTj" class="admin-form-input" placeholder="Хусусиятҳои маҳсулот (масалан: Қудрат: 2000 Вт, Ҳаҷм: 2 л)..." style="height: 100px;"></textarea>
                     </div>
                 </div>
                 <div class="admin-modal-footer">
@@ -1268,6 +1276,8 @@
             document.getElementById('formProductOldPrice').value = basicProduct.oldPrice || '';
             document.getElementById('formProductDescription').value = 'Загрузка описания...';
             document.getElementById('formProductDescriptionTj').value = 'Загрузка описания...';
+            document.getElementById('formProductCharacteristics').value = 'Загрузка характеристик...';
+            document.getElementById('formProductCharacteristicsTj').value = 'Загрузка характеристик...';
             
             formColorTags = basicProduct.colors ? [...basicProduct.colors] : [];
             formSizeTags = basicProduct.sizes ? [...basicProduct.sizes] : [];
@@ -1291,6 +1301,8 @@
                 document.getElementById('productModalTitle').textContent = `Редактировать товар ID:${id}`;
                 document.getElementById('formProductDescription').value = p.description || '';
                 document.getElementById('formProductDescriptionTj').value = p.descriptionTj || '';
+                document.getElementById('formProductCharacteristics').value = p.characteristics || '';
+                document.getElementById('formProductCharacteristicsTj').value = p.characteristicsTj || '';
                 
                 formColorTags = p.colors ? [...p.colors] : [];
                 formSizeTags = p.sizes ? [...p.sizes] : [];
@@ -1691,6 +1703,8 @@
             const videoUrl = document.getElementById('formProductVideo').value.trim();
             const description = document.getElementById('formProductDescription').value.trim();
             const descriptionTj = document.getElementById('formProductDescriptionTj').value.trim();
+            const characteristics = document.getElementById('formProductCharacteristics').value.trim();
+            const characteristicsTj = document.getElementById('formProductCharacteristicsTj').value.trim();
             
             // Parse extra images array
             let extraImages = [];
@@ -1710,6 +1724,7 @@
                 name, category, badge, price, oldPrice, 
                 image, images: extraImages,
                 videoUrl, description, descriptionTj,
+                characteristics, characteristicsTj,
                 colors: formColorTags,
                 sizes: formSizeTags,
                 sizePrices: formSizePrices,
