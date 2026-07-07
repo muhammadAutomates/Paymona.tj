@@ -246,6 +246,7 @@ function renderCatalog() {
     if (!catalogGrid) return;
     
     const filtered = storeProducts.filter(p => {
+        if (p.isActive === false) return false;
         const matchesCat = currentFilter === 'all' || p.category === currentFilter;
         const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                               (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -276,7 +277,7 @@ function updateHeroShowcase() {
     if (!showImg || storeProducts.length === 0) return;
     
     // Choose the mixer ( Bergamo ) or first hit product
-    const featured = storeProducts.find(p => p.id === 15) || storeProducts.find(p => p.badge === 'Хит') || storeProducts[0];
+    const featured = storeProducts.find(p => p.id === 15 && p.isActive !== false) || storeProducts.find(p => p.badge === 'Хит' && p.isActive !== false) || storeProducts.find(p => p.isActive !== false);
     
     if (featured) {
         showImg.src = featured.image;
@@ -297,7 +298,7 @@ function renderPopularProducts() {
     if (!grid) return;
     
     grid.innerHTML = '';
-    const hits = storeProducts.filter(p => p.badge === 'Хит' || p.id % 7 === 0).slice(0, 4);
+    const hits = storeProducts.filter(p => p.isActive !== false && (p.badge === 'Хит' || p.id % 7 === 0)).slice(0, 4);
     
     if (hits.length === 0) {
         grid.innerHTML = '<p class="text-center w-100" data-i18n="catalog_empty">Товары загружаются...</p>';

@@ -376,6 +376,7 @@
                                     <th>Категория</th>
                                     <th>Цена</th>
                                     <th>Скидка</th>
+                                    <th>Статус</th>
                                     <th>Действия</th>
                                 </tr>
                             </thead>
@@ -664,6 +665,12 @@
                             <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">Цены для размеров (оставьте пустыми для цены по умолчанию):</span>
                             <div id="sizePricesRows" class="flex-column gap-10"></div>
                         </div>
+                    </div>
+
+                    <!-- Active status selector -->
+                    <div class="admin-form-group mb-20 d-flex align-items-center gap-10" style="flex-direction: row; cursor: pointer; background: var(--bg-alt); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                        <input type="checkbox" id="formProductActive" checked style="width: 20px; height: 20px; cursor: pointer;">
+                        <label for="formProductActive" style="font-weight: 700; margin: 0; cursor: pointer; color: var(--text-main);">Товар в продаже (показывать в каталоге)</label>
                     </div>
 
                     <div class="admin-form-group col-span-2">
@@ -1138,6 +1145,14 @@
                     discSticker = `<span class="status-badge new">-${discPercent}%</span>`;
                 }
                 
+                // Status badge setup
+                const isProductActive = p.isActive !== false;
+                const statusBadge = `
+                    <span class="status-badge ${isProductActive ? 'completed' : 'new'}" style="cursor: pointer; user-select: none;" onclick="toggleProductActive(${p.id})">
+                        ${isProductActive ? 'В продаже' : 'Скрыт'}
+                    </span>
+                `;
+                
                 tr.innerHTML = `
                     <td>${p.id}</td>
                     <td><img src="${p.image}" alt="${p.name}" style="width: 50px; height: 50px; object-fit: contain; background: var(--bg-alt); border-radius: 6px; padding: 4px;"></td>
@@ -1145,6 +1160,7 @@
                     <td><code>${p.category}</code></td>
                     <td><b>${p.price} c.</b> ${p.oldPrice ? `<span style="font-size:0.8rem; color:var(--text-muted); text-decoration:line-through;">${p.oldPrice} c.</span>` : ''}</td>
                     <td>${discSticker}</td>
+                    <td>${statusBadge}</td>
                     <td>
                         <button class="btn btn-outline" style="color: var(--text-main); border-color: var(--border-color); padding: 6px 12px; font-size: 0.8rem;" onclick="openEditProductModal(${p.id})">Изм</button>
                         <button class="btn btn-outline" style="color: var(--brand-red); border-color: var(--brand-red); padding: 6px 12px; font-size: 0.8rem;" onclick="deleteProduct(${p.id})">Удалить</button>
@@ -1168,6 +1184,36 @@
                 const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
                 if(res.ok) loadProductsList();
             } catch(e) {}
+        }
+
+        // Toggle product active state (Quick Status Toggle)
+        async function toggleProductActive(id) {
+            const product = adminProducts.find(p => p.id === id);
+            if (!product) return;
+            
+            // Retrieve full product details to ensure we do not lose other heavy fields when updating
+            try {
+                const fetchRes = await fetch(`/api/products/${id}`);
+                if (!fetchRes.ok) throw new Error('Failed to fetch details');
+                const fullProduct = await fetchRes.json();
+                
+                const newActive = fullProduct.isActive === false ? true : false;
+                
+                const res = await fetch(`/api/products/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...fullProduct, isActive: newActive })
+                });
+                
+                if (res.ok) {
+                    loadProductsList();
+                } else {
+                    const err = await res.json();
+                    alert(err.error || 'Ошибка при изменении статуса');
+                }
+            } catch(e) {
+                alert('Ошибка соединения с сервером');
+            }
         }
 
         // --- PRODUCT EDIT/ADD DIALOG DIALOGS ---
@@ -1197,6 +1243,7 @@
             formColorTags = [];
             formSizeTags = [];
             formSizePrices = {};
+            document.getElementById('formProductActive').checked = true;
             renderColorTagsManager();
             renderSizeTagsManager();
             
@@ -1225,6 +1272,7 @@
             formColorTags = basicProduct.colors ? [...basicProduct.colors] : [];
             formSizeTags = basicProduct.sizes ? [...basicProduct.sizes] : [];
             formSizePrices = basicProduct.sizePrices ? JSON.parse(JSON.stringify(basicProduct.sizePrices)) : {};
+            document.getElementById('formProductActive').checked = basicProduct.isActive !== false;
             renderColorTagsManager();
             renderSizeTagsManager();
             
@@ -1247,6 +1295,7 @@
                 formColorTags = p.colors ? [...p.colors] : [];
                 formSizeTags = p.sizes ? [...p.sizes] : [];
                 formSizePrices = p.sizePrices ? JSON.parse(JSON.stringify(p.sizePrices)) : {};
+                document.getElementById('formProductActive').checked = p.isActive !== false;
                 renderColorTagsManager();
                 renderSizeTagsManager();
                 
@@ -1655,13 +1704,16 @@
                 return;
             }
             
+            const isActive = document.getElementById('formProductActive').checked;
+            
             const payload = {
                 name, category, badge, price, oldPrice, 
                 image, images: extraImages,
                 videoUrl, description, descriptionTj,
                 colors: formColorTags,
                 sizes: formSizeTags,
-                sizePrices: formSizePrices
+                sizePrices: formSizePrices,
+                isActive: isActive
             };
             
             const url = id ? `/api/products/${id}` : '/api/products';
