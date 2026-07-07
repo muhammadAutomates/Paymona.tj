@@ -912,6 +912,29 @@ async function openProductDetailModal(id) {
                 sizesList.querySelectorAll('.size-badge').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 activeSelectedSize = size;
+                
+                // Update displayed price based on selected size price if sizePrices exists
+                const detailPriceEl = document.getElementById('detailPrice');
+                const detailOldPriceEl = document.getElementById('detailOldPrice');
+                
+                if (p.sizePrices && p.sizePrices[size] && p.sizePrices[size].price) {
+                    detailPriceEl.textContent = `${p.sizePrices[size].price} c.`;
+                    if (p.sizePrices[size].oldPrice) {
+                        detailOldPriceEl.textContent = `${p.sizePrices[size].oldPrice} c.`;
+                        detailOldPriceEl.classList.remove('hidden');
+                    } else {
+                        detailOldPriceEl.classList.add('hidden');
+                    }
+                } else {
+                    // Fallback to default product price
+                    detailPriceEl.textContent = `${p.price} c.`;
+                    if (p.oldPrice) {
+                        detailOldPriceEl.textContent = `${p.oldPrice} c.`;
+                        detailOldPriceEl.classList.remove('hidden');
+                    } else {
+                        detailOldPriceEl.classList.add('hidden');
+                    }
+                }
             });
             sizesList.appendChild(btn);
         });
@@ -1111,6 +1134,15 @@ function addToCart(product, qty, color, size) {
     const cartItemId = `${product.id}_${color}_${size}`;
     const index = shoppingCart.findIndex(item => item.cartItemId === cartItemId);
     
+    // Determine the price based on selected size price if sizePrices exists
+    let price = product.price;
+    if (size && product.sizePrices && product.sizePrices[size] && product.sizePrices[size].price) {
+        const customPrice = parseFloat(product.sizePrices[size].price);
+        if (!isNaN(customPrice)) {
+            price = customPrice;
+        }
+    }
+    
     if (index > -1) {
         shoppingCart[index].quantity += qty;
     } else {
@@ -1118,7 +1150,7 @@ function addToCart(product, qty, color, size) {
             cartItemId,
             id: product.id,
             name: product.name,
-            price: product.price,
+            price: price,
             image: product.image,
             color,
             size,

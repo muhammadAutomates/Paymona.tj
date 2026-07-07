@@ -203,6 +203,7 @@ const ProductSchema = new mongoose.Schema({
     videoUrl: String,       // Uploaded or external video URL
     colors: [String],
     sizes: [String],
+    sizePrices: { type: mongoose.Schema.Types.Mixed, default: {} },
     description: String,
     descriptionTj: String
 });
@@ -841,6 +842,7 @@ app.post('/api/products', async (req, res) => {
         // Add defaults
         if (!newProduct.colors) newProduct.colors = [];
         if (!newProduct.sizes) newProduct.sizes = [];
+        if (!newProduct.sizePrices) newProduct.sizePrices = {};
         if (!newProduct.description) newProduct.description = '';
         if (!newProduct.descriptionTj) newProduct.descriptionTj = '';
         if (!newProduct.videoUrl) newProduct.videoUrl = '';
