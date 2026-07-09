@@ -1405,8 +1405,65 @@ function openFullscreenLightbox(mediaList, startIndex) {
         });
     }
     
+    // Gesture state variables
+    let scale = 1;
+    let translateX = 0;
+    let translateY = 0;
+    
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    
+    let isPanning = false;
+    let startPanX = 0;
+    let startPanY = 0;
+    
+    let initialPinchDistance = 0;
+    let initialScale = 1;
+    let isPinching = false;
+
+    function getDistance(touches) {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function updateImageTransform(animate = false) {
+        const img = content.querySelector('img');
+        if (!img) return;
+        img.style.transition = animate ? 'transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none';
+        img.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`;
+    }
+
+    function keepWithinBounds() {
+        const img = content.querySelector('img');
+        if (!img) return;
+        
+        const imgWidth = img.offsetWidth;
+        const imgHeight = img.offsetHeight;
+        const maxW = Math.max(0, (imgWidth * (scale - 1)) / 2);
+        const maxH = Math.max(0, (imgHeight * (scale - 1)) / 2);
+        
+        let adjustedX = Math.max(-maxW, Math.min(maxW, translateX));
+        let adjustedY = Math.max(-maxH, Math.min(maxH, translateY));
+        
+        if (adjustedX !== translateX || adjustedY !== translateY) {
+            translateX = adjustedX;
+            translateY = adjustedY;
+            updateImageTransform(true);
+        }
+    }
+
     function showMedia(index) {
         if (mediaList.length === 0) return;
+        
+        // Reset scale and offsets when transitioning to any slide
+        scale = 1;
+        translateX = 0;
+        translateY = 0;
+        isPanning = false;
+        isPinching = false;
         
         // Circular loop index
         if (index < 0) {
@@ -1433,7 +1490,8 @@ function openFullscreenLightbox(mediaList, startIndex) {
                 content.innerHTML = `<video src="${media.url}" controls autoplay></video>`;
             }
         } else {
-            content.innerHTML = `<img src="${media.url}" alt="Fullscreen product image">`;
+            content.innerHTML = `<img src="${media.url}" alt="Fullscreen product image" draggable="false" style="user-select:none;touch-action:none;will-change:transform;">`;
+            updateImageTransform(false);
         }
     }
     
@@ -1473,28 +1531,107 @@ function openFullscreenLightbox(mediaList, startIndex) {
     };
     document.addEventListener('keydown', keyHandler);
     
-    // Swipe gestures support
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
+    // Touch Events for Mobile zoom/pan/swipe support
     overlay.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
+        const img = content.querySelector('img');
+        if (!img) return;
+
+        if (e.touches.length === 1) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            
+            if (scale > 1) {
+                isPanning = true;
+                startPanX = e.touches[0].clientX - translateX;
+                startPanY = e.touches[0].clientY - translateY;
+            }
+        } else if (e.touches.length === 2) {
+            isPinching = true;
+            isPanning = false;
+            initialPinchDistance = getDistance(e.touches);
+            initialScale = scale;
+        }
+    }, { passive: false });
+    
+    overlay.addEventListener('touchmove', (e) => {
+        const img = content.querySelector('img');
+        if (!img) return;
+
+        if (e.touches.length === 1) {
+            if (isPanning) {
+                e.preventDefault();
+                translateX = e.touches[0].clientX - startPanX;
+                translateY = e.touches[0].clientY - startPanY;
+                
+                const imgWidth = img.offsetWidth;
+                const imgHeight = img.offsetHeight;
+                const maxW = Math.max(0, (imgWidth * (scale - 1)) / 2);
+                const maxH = Math.max(0, (imgHeight * (scale - 1)) / 2);
+                
+                // Allow a bit of rubber-band overflow on drag
+                translateX = Math.max(-maxW - 40, Math.min(maxW + 40, translateX));
+                translateY = Math.max(-maxH - 40, Math.min(maxH + 40, translateY));
+                
+                updateImageTransform(false);
+            }
+        } else if (e.touches.length === 2 && isPinching) {
+            e.preventDefault();
+            const currentDist = getDistance(e.touches);
+            if (initialPinchDistance > 0) {
+                const newScale = initialScale * (currentDist / initialPinchDistance);
+                scale = Math.max(1, Math.min(4, newScale));
+                
+                if (scale === 1) {
+                    translateX = 0;
+                    translateY = 0;
+                }
+                updateImageTransform(false);
+            }
+        }
+    }, { passive: false });
     
     overlay.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipeGesture();
+        if (isPinching) {
+            if (e.touches.length < 2) {
+                isPinching = false;
+                if (scale < 1.15) {
+                    scale = 1;
+                    translateX = 0;
+                    translateY = 0;
+                    updateImageTransform(true);
+                } else {
+                    keepWithinBounds();
+                }
+            }
+        } else if (isPanning) {
+            isPanning = false;
+            keepWithinBounds();
+        } else {
+            if (e.changedTouches.length === 1 && scale === 1) {
+                touchEndX = e.changedTouches[0].clientX;
+                touchEndY = e.changedTouches[0].clientY;
+                handleSwipeGesture();
+            }
+        }
     }, { passive: true });
     
     function handleSwipeGesture() {
-        const threshold = 50; // min distance in px
-        const diff = touchEndX - touchStartX;
-        if (Math.abs(diff) > threshold && mediaList.length > 1) {
-            if (diff > 0) {
-                // Swipe right -> previous image
+        const thresholdX = 50; 
+        const thresholdY = 80; 
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
+        
+        // Vertical swipe down/up to close the lightbox
+        if (Math.abs(diffY) > thresholdY && Math.abs(diffY) > Math.abs(diffX)) {
+            closeLightbox();
+            return;
+        }
+        
+        // Horizontal swipe to change slides
+        if (Math.abs(diffX) > thresholdX && mediaList.length > 1) {
+            if (diffX > 0) {
                 showMedia(currentIndex - 1);
             } else {
-                // Swipe left -> next image
                 showMedia(currentIndex + 1);
             }
         }

@@ -2904,6 +2904,10 @@ textarea.form-input {
     object-fit: contain;
     border-radius: var(--radius-md, 8px);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    will-change: transform;
 }
 .lightbox-content video, .lightbox-content iframe {
     width: 800px;
