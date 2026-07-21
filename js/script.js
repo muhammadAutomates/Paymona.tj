@@ -22,7 +22,8 @@ const i18n = {
         no_results: "Товары не найдены", filter_all: "Все",
         added_to_cart: "Товар добавлен!", order_success: "Заказ оформлен! Менеджер свяжется с вами.",
         fields_required: "Пожалуйста, выберите цвет и размер!",
-        desc_title: "Описание", char_title: "Характеристики"
+        desc_title: "Описание", char_title: "Характеристики",
+        warranty_label: "Гарантия:"
     },
     tj: {
         nav_home: "Асосӣ", nav_catalog: "Каталог", nav_about: "Дар бораи мо", nav_contact: "Тамос",
@@ -44,7 +45,8 @@ const i18n = {
         no_results: "Маҳсулот ёфт нашуд", filter_all: "Ҳама",
         added_to_cart: "Маҳсулот илова шуд!", order_success: "Фармоиш қабул шуд! Менеҷер бо шумо тамос мегирад.",
         fields_required: "Лутфан ранг ва андозаро интихоб кунед!",
-        desc_title: "Тавсиф", char_title: "Хусусиятҳо"
+        desc_title: "Тавсиф", char_title: "Хусусиятҳо",
+        warranty_label: "Кафолат:"
     },
     en: {
         nav_home: "Home", nav_catalog: "Catalog", nav_about: "About Us", nav_contact: "Contact",
@@ -66,9 +68,46 @@ const i18n = {
         no_results: "No products found", filter_all: "All",
         added_to_cart: "Added to cart!", order_success: "Order placed! Manager will contact you shortly.",
         fields_required: "Please select color and size!",
-        desc_title: "Description", char_title: "Characteristics"
+        desc_title: "Description", char_title: "Characteristics",
+        warranty_label: "Warranty:"
     }
 };
+
+// ---- Warranty text helper ----
+function getWarrantyText(duration, unit, lang) {
+    if (!duration) return '';
+    const n = parseInt(duration, 10);
+    if (isNaN(n)) return '';
+    if (lang === 'tj') {
+        const unitMap = { day: 'рӯз', month: 'моҳ', year: 'сол' };
+        return `${n} ${unitMap[unit] || ''}`.trim();
+    }
+    if (lang === 'en') {
+        const unitMap = { day: n === 1 ? 'day' : 'days', month: n === 1 ? 'month' : 'months', year: n === 1 ? 'year' : 'years' };
+        return `${n} ${unitMap[unit] || ''}`.trim();
+    }
+    // Russian pluralization (default)
+    const last2 = n % 100;
+    const last1 = n % 10;
+    let ru = '';
+    if (unit === 'day') {
+        if (last2 >= 11 && last2 <= 19) ru = 'дней';
+        else if (last1 === 1) ru = 'день';
+        else if (last1 >= 2 && last1 <= 4) ru = 'дня';
+        else ru = 'дней';
+    } else if (unit === 'month') {
+        if (last2 >= 11 && last2 <= 19) ru = 'месяцев';
+        else if (last1 === 1) ru = 'месяц';
+        else if (last1 >= 2 && last1 <= 4) ru = 'месяца';
+        else ru = 'месяцев';
+    } else if (unit === 'year') {
+        if (last2 >= 11 && last2 <= 19) ru = 'лет';
+        else if (last1 === 1) ru = 'год';
+        else if (last1 >= 2 && last1 <= 4) ru = 'года';
+        else ru = 'лет';
+    }
+    return `${n} ${ru}`.trim();
+}
 
 // Global Store State
 let storeProducts = [];
@@ -812,6 +851,18 @@ async function openProductDetailModal(id) {
         } else {
             detailCharEl.textContent = '';
             if (detailCharGroup) detailCharGroup.style.display = 'none';
+        }
+    }
+
+    // Warranty block
+    const warrantyGroup = document.getElementById('detailWarrantyGroup');
+    const warrantyTextEl = document.getElementById('detailWarrantyText');
+    if (warrantyGroup && warrantyTextEl) {
+        if (p.hasWarranty && p.warrantyDuration) {
+            warrantyTextEl.textContent = getWarrantyText(p.warrantyDuration, p.warrantyUnit || 'month', lang);
+            warrantyGroup.style.display = 'flex';
+        } else {
+            warrantyGroup.style.display = 'none';
         }
     }
     
