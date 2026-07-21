@@ -211,7 +211,10 @@ const ProductSchema = new mongoose.Schema({
     description: String,
     descriptionTj: String,
     characteristics: String,
-    characteristicsTj: String
+    characteristicsTj: String,
+    hasWarranty: { type: Boolean, default: false },
+    warrantyDuration: Number,
+    warrantyUnit: String
 });
 
 const CategorySchema = new mongoose.Schema({

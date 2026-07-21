@@ -668,6 +668,32 @@
                         </div>
                     </div>
 
+                    <!-- Наличие гарантии -->
+                    <div class="admin-form-group mb-20" style="background: var(--bg-alt); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                        <div class="d-flex align-items-center gap-10" style="flex-direction: row; cursor: pointer; margin-bottom: 0;">
+                            <input type="checkbox" id="formProductHasWarranty" style="width: 20px; height: 20px; cursor: pointer;">
+                            <label for="formProductHasWarranty" style="font-weight: 700; margin: 0; cursor: pointer; color: var(--text-main);">Наличие гарантии</label>
+                        </div>
+                        
+                        <!-- Блок деталей гарантии (показывается только если галочка включена) -->
+                        <div id="warrantyDetailsContainer" style="display: none; margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                            <div class="admin-form-grid" style="grid-template-columns: 2fr 1fr; gap: 10px;">
+                                <div class="admin-form-group" style="margin-bottom: 0;">
+                                    <label class="admin-form-label" style="font-size: 0.8rem; margin-bottom: 4px;">Срок гарантии (только цифры)</label>
+                                    <input type="number" id="formProductWarrantyDuration" class="admin-form-input" min="1" placeholder="Например: 12" style="padding: 8px 12px;">
+                                </div>
+                                <div class="admin-form-group" style="margin-bottom: 0;">
+                                    <label class="admin-form-label" style="font-size: 0.8rem; margin-bottom: 4px;">Единица измерения</label>
+                                    <select id="formProductWarrantyUnit" style="padding: 8px 12px; width: 100%; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-main); color: var(--text-main); font-size: 0.9rem;">
+                                        <option value="day">день / дней</option>
+                                        <option value="month" selected>месяц / месяцев</option>
+                                        <option value="year">год / лет</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Active status selector -->
                     <div class="admin-form-group mb-20 d-flex align-items-center gap-10" style="flex-direction: row; cursor: pointer; background: var(--bg-alt); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                         <input type="checkbox" id="formProductActive" checked style="width: 20px; height: 20px; cursor: pointer;">
@@ -1357,6 +1383,14 @@
         const cancelBtn = document.getElementById('cancelProductModalBtn');
         const pForm = document.getElementById('productForm');
 
+        // Toggle warranty inputs container based on checkbox state
+        const hasWarrantyCheckbox = document.getElementById('formProductHasWarranty');
+        const warrantyDetailsContainer = document.getElementById('warrantyDetailsContainer');
+        
+        hasWarrantyCheckbox.addEventListener('change', () => {
+            warrantyDetailsContainer.style.display = hasWarrantyCheckbox.checked ? 'block' : 'none';
+        });
+
         // ===================================================
         // MULTI-MEDIA STATE — declared early so openEditProductModal can use them
         // ===================================================
@@ -1378,6 +1412,13 @@
             formSizeTags = [];
             formSizePrices = {};
             document.getElementById('formProductActive').checked = true;
+            
+            // Reset warranty inputs
+            hasWarrantyCheckbox.checked = false;
+            warrantyDetailsContainer.style.display = 'none';
+            document.getElementById('formProductWarrantyDuration').value = '';
+            document.getElementById('formProductWarrantyUnit').value = 'month';
+
             renderColorTagsManager();
             renderSizeTagsManager();
             
@@ -1405,6 +1446,12 @@
             document.getElementById('formProductCharacteristics').value = 'Загрузка характеристик...';
             document.getElementById('formProductCharacteristicsTj').value = 'Загрузка характеристик...';
             
+            // Populate basic warranty fields
+            hasWarrantyCheckbox.checked = basicProduct.hasWarranty === true;
+            warrantyDetailsContainer.style.display = basicProduct.hasWarranty ? 'block' : 'none';
+            document.getElementById('formProductWarrantyDuration').value = basicProduct.warrantyDuration || '';
+            document.getElementById('formProductWarrantyUnit').value = basicProduct.warrantyUnit || 'month';
+
             formColorTags = basicProduct.colors ? [...basicProduct.colors] : [];
             formSizeTags = basicProduct.sizes ? [...basicProduct.sizes] : [];
             formSizePrices = basicProduct.sizePrices ? JSON.parse(JSON.stringify(basicProduct.sizePrices)) : {};
@@ -1430,6 +1477,12 @@
                 document.getElementById('formProductCharacteristics').value = p.characteristics || '';
                 document.getElementById('formProductCharacteristicsTj').value = p.characteristicsTj || '';
                 
+                // Populate full warranty fields
+                hasWarrantyCheckbox.checked = p.hasWarranty === true;
+                warrantyDetailsContainer.style.display = p.hasWarranty ? 'block' : 'none';
+                document.getElementById('formProductWarrantyDuration').value = p.warrantyDuration || '';
+                document.getElementById('formProductWarrantyUnit').value = p.warrantyUnit || 'month';
+
                 formColorTags = p.colors ? [...p.colors] : [];
                 formSizeTags = p.sizes ? [...p.sizes] : [];
                 formSizePrices = p.sizePrices ? JSON.parse(JSON.stringify(p.sizePrices)) : {};
@@ -1846,6 +1899,12 @@
             
             const isActive = document.getElementById('formProductActive').checked;
             
+            // Warranty values parsing
+            const hasWarranty = document.getElementById('formProductHasWarranty').checked;
+            const warrantyDurationVal = document.getElementById('formProductWarrantyDuration').value;
+            const warrantyDuration = hasWarranty && warrantyDurationVal ? parseInt(warrantyDurationVal) : null;
+            const warrantyUnit = hasWarranty ? document.getElementById('formProductWarrantyUnit').value : null;
+            
             const payload = {
                 name, category, badge, price, oldPrice, 
                 image, images: extraImages,
@@ -1854,7 +1913,10 @@
                 colors: formColorTags,
                 sizes: formSizeTags,
                 sizePrices: formSizePrices,
-                isActive: isActive
+                isActive: isActive,
+                hasWarranty: hasWarranty,
+                warrantyDuration: warrantyDuration,
+                warrantyUnit: warrantyUnit
             };
             
             const url = id ? `/api/products/${id}` : '/api/products';
