@@ -1266,6 +1266,41 @@ button {
     box-shadow: var(--shadow-brand);
 }
 
+/* Disabled / Out of stock variation badges */
+.color-badge.disabled,
+.color-badge[disabled] {
+    opacity: 0.35 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    filter: grayscale(80%) !important;
+    box-shadow: 0 0 0 1px #d1d5db !important;
+    position: relative !important;
+}
+
+.color-badge.disabled::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -4px;
+    right: -4px;
+    height: 2px;
+    background-color: #ef4444;
+    transform: translateY(-50%) rotate(-45deg);
+    z-index: 2;
+    border-radius: 1px;
+}
+
+.size-badge.disabled,
+.size-badge[disabled] {
+    opacity: 0.45 !important;
+    background-color: #f3f4f6 !important;
+    color: #9ca3af !important;
+    border-color: #e5e7eb !important;
+    text-decoration: line-through !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
 .detail-actions {
     display: flex;
     gap: 15px;
@@ -2301,6 +2336,45 @@ textarea.form-input {
 
 .tag-item i:hover {
     color: var(--brand-red);
+}
+
+.variation-status-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+}
+
+.variation-status-btn.in-stock {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.variation-status-btn.in-stock:hover {
+    background: rgba(16, 185, 129, 0.25);
+}
+
+.variation-status-btn.out-of-stock {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.variation-status-btn.out-of-stock:hover {
+    background: rgba(239, 68, 68, 0.25);
+}
+
+.tag-item.out-of-stock {
+    background: rgba(239, 68, 68, 0.04);
+    border-color: rgba(239, 68, 68, 0.2);
+    color: #9ca3af;
 }
 
 .tag-input-wrap {

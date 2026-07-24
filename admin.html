@@ -666,6 +666,13 @@
                             <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">Цены для размеров (оставьте пустыми для цены по умолчанию):</span>
                             <div id="sizePricesRows" class="flex-column gap-10"></div>
                         </div>
+
+                        <!-- Container for color+size combination status -->
+                        <div id="combinationStatusContainer" class="flex-column gap-10 mt-10" style="display: none; background: var(--bg-alt); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">Статус наличия комбинаций (Цвет + Размер):</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">Нажмите на кнопку статуса, чтобы снять конкретную парную вариацию с продажи.</span>
+                            <div id="combinationStatusRows" class="d-flex flex-wrap gap-10" style="margin-top: 6px;"></div>
+                        </div>
                     </div>
 
                     <!-- Наличие гарантии -->
@@ -864,6 +871,9 @@
         let formColorTags = [];
         let formSizeTags = [];
         let formSizePrices = {};
+        let formDisabledColors = [];
+        let formDisabledSizes = [];
+        let formDisabledCombinations = [];
 
         function bootstrapAdminDashboard() {
             loadDashboardMetrics();
@@ -1411,6 +1421,9 @@
             formColorTags = [];
             formSizeTags = [];
             formSizePrices = {};
+            formDisabledColors = [];
+            formDisabledSizes = [];
+            formDisabledCombinations = [];
             document.getElementById('formProductActive').checked = true;
             
             // Reset warranty inputs
@@ -1455,6 +1468,9 @@
             formColorTags = basicProduct.colors ? [...basicProduct.colors] : [];
             formSizeTags = basicProduct.sizes ? [...basicProduct.sizes] : [];
             formSizePrices = basicProduct.sizePrices ? JSON.parse(JSON.stringify(basicProduct.sizePrices)) : {};
+            formDisabledColors = basicProduct.disabledColors ? [...basicProduct.disabledColors] : [];
+            formDisabledSizes = basicProduct.disabledSizes ? [...basicProduct.disabledSizes] : [];
+            formDisabledCombinations = basicProduct.disabledCombinations ? [...basicProduct.disabledCombinations] : [];
             document.getElementById('formProductActive').checked = basicProduct.isActive !== false;
             renderColorTagsManager();
             renderSizeTagsManager();
@@ -1486,6 +1502,9 @@
                 formColorTags = p.colors ? [...p.colors] : [];
                 formSizeTags = p.sizes ? [...p.sizes] : [];
                 formSizePrices = p.sizePrices ? JSON.parse(JSON.stringify(p.sizePrices)) : {};
+                formDisabledColors = p.disabledColors ? [...p.disabledColors] : [];
+                formDisabledSizes = p.disabledSizes ? [...p.disabledSizes] : [];
+                formDisabledCombinations = p.disabledCombinations ? [...p.disabledCombinations] : [];
                 document.getElementById('formProductActive').checked = p.isActive !== false;
                 renderColorTagsManager();
                 renderSizeTagsManager();
@@ -1779,17 +1798,39 @@
             container.querySelectorAll('.admin-variation-tag').forEach(el => el.remove());
             
             formColorTags.forEach(tag => {
+                const isDisabled = formDisabledColors.includes(tag);
                 const tagEl = document.createElement('div');
-                tagEl.className = 'admin-variation-tag';
-                tagEl.innerHTML = `${tag} <i class="ph ph-x"></i>`;
-                tagEl.querySelector('i').addEventListener('click', () => {
+                tagEl.className = `admin-variation-tag tag-item ${isDisabled ? 'out-of-stock' : ''}`;
+                tagEl.innerHTML = `
+                    <span>${tag}</span>
+                    <button type="button" class="variation-status-btn ${isDisabled ? 'out-of-stock' : 'in-stock'}" title="${isDisabled ? 'Включить в продажу' : 'Снять с продажи (Закончился)'}">
+                        ${isDisabled ? '<i class="ph ph-x-circle"></i> Снят с продажи' : '<i class="ph ph-check-circle"></i> В наличии'}
+                    </button>
+                    <i class="ph ph-x remove-tag-icon" title="Удалить"></i>
+                `;
+                
+                tagEl.querySelector('.variation-status-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (formDisabledColors.includes(tag)) {
+                        formDisabledColors = formDisabledColors.filter(t => t !== tag);
+                    } else {
+                        formDisabledColors.push(tag);
+                    }
+                    renderColorTagsManager();
+                });
+
+                tagEl.querySelector('.remove-tag-icon').addEventListener('click', (e) => {
+                    e.stopPropagation();
                     formColorTags = formColorTags.filter(t => t !== tag);
+                    formDisabledColors = formDisabledColors.filter(t => t !== tag);
                     renderColorTagsManager();
                 });
                 
                 // Insert before input wrap
                 container.insertBefore(tagEl, container.querySelector('.tag-input-wrap'));
             });
+
+            renderCombinationMatrix();
         }
 
         // Tags size helpers
@@ -1822,17 +1863,38 @@
             }
             
             formSizeTags.forEach(tag => {
+                const isDisabled = formDisabledSizes.includes(tag);
                 const tagEl = document.createElement('div');
-                tagEl.className = 'admin-variation-tag';
-                tagEl.innerHTML = `${tag} <i class="ph ph-x"></i>`;
-                tagEl.querySelector('i').addEventListener('click', () => {
+                tagEl.className = `admin-variation-tag tag-item ${isDisabled ? 'out-of-stock' : ''}`;
+                tagEl.innerHTML = `
+                    <span>${tag}</span>
+                    <button type="button" class="variation-status-btn ${isDisabled ? 'out-of-stock' : 'in-stock'}" title="${isDisabled ? 'Включить в продажу' : 'Снять с продажи (Закончился)'}">
+                        ${isDisabled ? '<i class="ph ph-x-circle"></i> Снят с продажи' : '<i class="ph ph-check-circle"></i> В наличии'}
+                    </button>
+                    <i class="ph ph-x remove-tag-icon" title="Удалить"></i>
+                `;
+                
+                tagEl.querySelector('.variation-status-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (formDisabledSizes.includes(tag)) {
+                        formDisabledSizes = formDisabledSizes.filter(t => t !== tag);
+                    } else {
+                        formDisabledSizes.push(tag);
+                    }
+                    renderSizeTagsManager();
+                });
+
+                tagEl.querySelector('.remove-tag-icon').addEventListener('click', (e) => {
+                    e.stopPropagation();
                     formSizeTags = formSizeTags.filter(t => t !== tag);
+                    formDisabledSizes = formDisabledSizes.filter(t => t !== tag);
                     delete formSizePrices[tag];
                     renderSizeTagsManager();
                 });
+                
                 container.insertBefore(tagEl, container.querySelector('.tag-input-wrap'));
                 
-                // Add price row
+                // Add price row with status button
                 const row = document.createElement('div');
                 row.className = 'd-flex align-items-center gap-10';
                 row.style.justifyContent = 'space-between';
@@ -1849,6 +1911,9 @@
                     <div class="d-flex align-items-center gap-10" style="flex: 1;">
                         <input type="number" class="admin-form-input size-price-input" data-size="${tag}" placeholder="Цена (сомони)" value="${sizeInfo.price || ''}" style="padding: 6px 10px; font-size: 0.85rem;" min="1">
                         <input type="number" class="admin-form-input size-oldprice-input" data-size="${tag}" placeholder="Старая цена (необязательно)" value="${sizeInfo.oldPrice || ''}" style="padding: 6px 10px; font-size: 0.85rem;" min="1">
+                        <button type="button" class="variation-status-btn ${isDisabled ? 'out-of-stock' : 'in-stock'}" style="white-space: nowrap;">
+                            ${isDisabled ? '<i class="ph ph-x-circle"></i> Снят' : '<i class="ph ph-check-circle"></i> В наличии'}
+                        </button>
                     </div>
                 `;
                 
@@ -1863,9 +1928,66 @@
                     const val = e.target.value;
                     formSizePrices[tag].oldPrice = val ? parseFloat(val) : null;
                 });
+
+                row.querySelector('.variation-status-btn').addEventListener('click', () => {
+                    if (formDisabledSizes.includes(tag)) {
+                        formDisabledSizes = formDisabledSizes.filter(t => t !== tag);
+                    } else {
+                        formDisabledSizes.push(tag);
+                    }
+                    renderSizeTagsManager();
+                });
                 
                 pricesRows.appendChild(row);
             });
+
+            renderCombinationMatrix();
+        }
+
+        function renderCombinationMatrix() {
+            const comboContainer = document.getElementById('combinationStatusContainer');
+            const comboRows = document.getElementById('combinationStatusRows');
+            if (!comboContainer || !comboRows) return;
+            
+            if (formColorTags.length > 0 && formSizeTags.length > 0) {
+                comboContainer.style.display = 'flex';
+                comboRows.innerHTML = '';
+                
+                formColorTags.forEach(color => {
+                    formSizeTags.forEach(size => {
+                        const comboKey = `${color}|${size}`;
+                        const isComboDisabled = formDisabledCombinations.includes(comboKey) || formDisabledColors.includes(color) || formDisabledSizes.includes(size);
+                        
+                        const item = document.createElement('div');
+                        item.className = `d-flex align-items-center gap-6 ${isComboDisabled ? 'out-of-stock' : ''}`;
+                        item.style.background = 'white';
+                        item.style.border = '1px solid var(--border-color)';
+                        item.style.borderRadius = 'var(--radius-sm)';
+                        item.style.padding = '6px 10px';
+                        item.style.fontSize = '0.82rem';
+                        
+                        item.innerHTML = `
+                            <span style="font-weight:600; color: var(--text-main);">${color} / ${size}</span>
+                            <button type="button" class="variation-status-btn ${isComboDisabled ? 'out-of-stock' : 'in-stock'}" style="font-size: 0.72rem; padding: 2px 6px;">
+                                ${isComboDisabled ? '<i class="ph ph-x-circle"></i> Снят с продажи' : '<i class="ph ph-check-circle"></i> В наличии'}
+                            </button>
+                        `;
+                        
+                        item.querySelector('.variation-status-btn').addEventListener('click', () => {
+                            if (formDisabledCombinations.includes(comboKey)) {
+                                formDisabledCombinations = formDisabledCombinations.filter(k => k !== comboKey);
+                            } else {
+                                formDisabledCombinations.push(comboKey);
+                            }
+                            renderCombinationMatrix();
+                        });
+                        
+                        comboRows.appendChild(item);
+                    });
+                });
+            } else {
+                comboContainer.style.display = 'none';
+            }
         }
 
         // Submit form API edit/add
@@ -1913,6 +2035,9 @@
                 colors: formColorTags,
                 sizes: formSizeTags,
                 sizePrices: formSizePrices,
+                disabledColors: formDisabledColors,
+                disabledSizes: formDisabledSizes,
+                disabledCombinations: formDisabledCombinations,
                 isActive: isActive,
                 hasWarranty: hasWarranty,
                 warrantyDuration: warrantyDuration,

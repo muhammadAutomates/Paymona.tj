@@ -964,9 +964,16 @@ async function openProductDetailModal(id) {
             btn.setAttribute('title', color);
             
             btn.addEventListener('click', () => {
-                colorsList.querySelectorAll('.color-badge').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                activeSelectedColor = color;
+                if (btn.disabled || btn.classList.contains('disabled')) return;
+                if (activeSelectedColor === color) {
+                    colorsList.querySelectorAll('.color-badge').forEach(b => b.classList.remove('active'));
+                    activeSelectedColor = '';
+                } else {
+                    colorsList.querySelectorAll('.color-badge').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeSelectedColor = color;
+                }
+                updateVariationState(p);
             });
             colorsList.appendChild(btn);
         });
@@ -981,11 +988,18 @@ async function openProductDetailModal(id) {
             const btn = document.createElement('button');
             btn.className = 'size-badge';
             btn.textContent = size;
+            btn.setAttribute('data-size-name', size);
             
             btn.addEventListener('click', () => {
-                sizesList.querySelectorAll('.size-badge').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                activeSelectedSize = size;
+                if (btn.disabled || btn.classList.contains('disabled')) return;
+                if (activeSelectedSize === size) {
+                    sizesList.querySelectorAll('.size-badge').forEach(b => b.classList.remove('active'));
+                    activeSelectedSize = '';
+                } else {
+                    sizesList.querySelectorAll('.size-badge').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeSelectedSize = size;
+                }
                 
                 // Update displayed price based on selected size price if sizePrices exists
                 const detailPriceEl = document.getElementById('detailPrice');
@@ -1009,6 +1023,8 @@ async function openProductDetailModal(id) {
                         detailOldPriceEl.classList.add('hidden');
                     }
                 }
+
+                updateVariationState(p);
             });
             sizesList.appendChild(btn);
         });
@@ -1016,8 +1032,78 @@ async function openProductDetailModal(id) {
         sizesGroup.classList.add('hidden');
     }
     
+    // Initialize variation availability states (gray out disabled items)
+    updateVariationState(p);
+    
     // Load reviews list
     loadProductReviews(p.id);
+}
+
+// Update availability state for variation buttons in detail modal
+function updateVariationState(p) {
+    if (!p) return;
+    const colorsList = document.getElementById('detailColorsList');
+    const sizesList = document.getElementById('detailSizesList');
+    
+    const disabledColors = p.disabledColors || [];
+    const disabledSizes = p.disabledSizes || [];
+    const disabledCombinations = p.disabledCombinations || [];
+
+    // 1. Update Colors
+    if (colorsList) {
+        colorsList.querySelectorAll('.color-badge').forEach(btn => {
+            const color = btn.getAttribute('data-color-name');
+            let isDisabled = disabledColors.includes(color);
+
+            if (!isDisabled && activeSelectedSize) {
+                if (disabledCombinations.includes(`${color}|${activeSelectedSize}`)) {
+                    isDisabled = true;
+                }
+            }
+
+            if (isDisabled) {
+                btn.classList.add('disabled');
+                btn.disabled = true;
+                btn.setAttribute('title', `${color} (Нет в наличии)`);
+                if (activeSelectedColor === color) {
+                    activeSelectedColor = '';
+                    btn.classList.remove('active');
+                }
+            } else {
+                btn.classList.remove('disabled');
+                btn.disabled = false;
+                btn.setAttribute('title', color);
+            }
+        });
+    }
+
+    // 2. Update Sizes
+    if (sizesList) {
+        sizesList.querySelectorAll('.size-badge').forEach(btn => {
+            const size = btn.getAttribute('data-size-name') || btn.textContent.trim();
+            let isDisabled = disabledSizes.includes(size);
+
+            if (!isDisabled && activeSelectedColor) {
+                if (disabledCombinations.includes(`${activeSelectedColor}|${size}`)) {
+                    isDisabled = true;
+                }
+            }
+
+            if (isDisabled) {
+                btn.classList.add('disabled');
+                btn.disabled = true;
+                btn.setAttribute('title', `${size} (Нет в наличии)`);
+                if (activeSelectedSize === size) {
+                    activeSelectedSize = '';
+                    btn.classList.remove('active');
+                }
+            } else {
+                btn.classList.remove('disabled');
+                btn.disabled = false;
+                btn.setAttribute('title', size);
+            }
+        });
+    }
 }
 
 // Reset modal active selections

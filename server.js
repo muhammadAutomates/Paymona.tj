@@ -207,6 +207,9 @@ const ProductSchema = new mongoose.Schema({
     colors: [String],
     sizes: [String],
     sizePrices: { type: mongoose.Schema.Types.Mixed, default: {} },
+    disabledColors: { type: [String], default: [] },
+    disabledSizes: { type: [String], default: [] },
+    disabledCombinations: { type: [String], default: [] },
     isActive: { type: Boolean, default: true },
     description: String,
     descriptionTj: String,
@@ -852,6 +855,9 @@ app.post('/api/products', async (req, res) => {
         if (!newProduct.colors) newProduct.colors = [];
         if (!newProduct.sizes) newProduct.sizes = [];
         if (!newProduct.sizePrices) newProduct.sizePrices = {};
+        if (!newProduct.disabledColors) newProduct.disabledColors = [];
+        if (!newProduct.disabledSizes) newProduct.disabledSizes = [];
+        if (!newProduct.disabledCombinations) newProduct.disabledCombinations = [];
         if (newProduct.isActive === undefined) newProduct.isActive = true;
         if (!newProduct.description) newProduct.description = '';
         if (!newProduct.descriptionTj) newProduct.descriptionTj = '';
